@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>🐀 Calculadora de Créditos — BotLab</title>
+<title>🤖 Calculadora de Créditos — BotLab</title>
 <style>
   :root{
     --bg:#080C14;
@@ -165,7 +165,7 @@
 <div class="wrap">
 
   <header>
-    <span class="badge">🐀 BotLab · Partner</span>
+    <span class="badge">🤖 BotLab · Partner</span>
     <h1>Calculadora de Créditos</h1>
     <p class="sub">¿Cuántos créditos consume un negocio al mes? Mete sus datos y míralo al instante.</p>
   </header>
@@ -260,7 +260,7 @@
       <div class="plan-banner">
         <span class="ico" id="planIco">🥇</span>
         <div>
-          <div class="t">Plan PyME recomendado (por consumo)</div>
+          <div class="t">Plan PyME recomendado (según citas/mes)</div>
           <div class="p" id="planName">—</div>
         </div>
       </div>
@@ -288,19 +288,19 @@
 
   <!-- ============ REVENTA TABLE ============ -->
   <section class="card table-card">
-    <h2>📊 Tabla de reventa por volumen</h2>
-    <p class="hint">Se resalta el plan donde cae el consumo del negocio. Precios validados en botlab.app.</p>
+    <h2>📊 Planes sugeridos (PyME)</h2>
+    <p class="hint">Datos oficiales de botlab.app (fijos, no cambian). Se resalta el plan que le toca al negocio según sus citas/mes.</p>
     <div class="table-scroll">
       <table>
         <thead>
           <tr>
-            <th>Créditos / mes</th>
-            <th>Costo partner</th>
-            <th>Reventa sugerida</th>
-            <th>Margen $</th>
-            <th>Margen %</th>
+            <th>Plan</th>
+            <th>Respuestas IA</th>
+            <th>Citas / mes</th>
+            <th>Reventa USD</th>
             <th>Reventa MXN</th>
-            <th>Plan público</th>
+            <th>Tu costo partner</th>
+            <th>Tu margen</th>
           </tr>
         </thead>
         <tbody id="tbody"></tbody>
@@ -316,17 +316,15 @@
 
 <script>
 (function(){
-  // --- Reventa tiers (volumen, plan público) ---
-  const tiers = [
-    {cred:500,   plan:"—",        cls:"none"},
-    {cred:1000,  plan:"Bronce",   cls:"bronce"},
-    {cred:2000,  plan:"Plata",    cls:"plata"},
-    {cred:3000,  plan:"—",        cls:"none"},
-    {cred:5000,  plan:"Oro",      cls:"oro"},
-    {cred:10000, plan:"—",        cls:"none"},
-    {cred:15000, plan:"Diamante", cls:"diamante"},
+  // --- Planes oficiales botlab.app (datos FIJOS, no se recalculan) ---
+  const plans = [
+    {key:"Bronce",   icon:"🥉", cls:"bronce",   resp:1000,  citasMax:70,     citasTxt:"~40–70",     usd:79,  mxn:1249, ideal:"1 sucursal · 1-7 especialistas"},
+    {key:"Plata",    icon:"🥈", cls:"plata",    resp:2000,  citasMax:140,    citasTxt:"~100–140",   usd:119, mxn:1949, ideal:"1-2 sucursales · 2-15 especialistas"},
+    {key:"Oro",      icon:"🥇", cls:"oro",      resp:5000,  citasMax:350,    citasTxt:"~200–350",   usd:229, mxn:3949, ideal:"1-5 sucursales · 5-30 especialistas"},
+    {key:"Diamante", icon:"💎", cls:"diamante", resp:15000, citasMax:1000000,citasTxt:"~600–1.000", usd:579, mxn:9949, ideal:"Franquicias/cadenas · 30+ especialistas"},
   ];
-  const planIcons = {"Bronce":"🥉","Plata":"🥈","Oro":"🥇","Diamante":"💎","—":"📦"};
+  // El plan se asigna por número de citas/ventas: el primero cuyo tope cubra las citas.
+  function pickPlan(citas){ for(const p of plans){ if(citas <= p.citasMax) return p; } return plans[plans.length-1]; }
 
   const $ = id => document.getElementById(id);
   const ids = ["prospectos","citas","precio","paquete","creditosIncl","costoMil","tc","multMin","multMax"];
@@ -348,18 +346,6 @@
       if(p<1) requestAnimationFrame(step);
     }
     requestAnimationFrame(step);
-  }
-
-  function pickTier(cred){
-    // plan recomendado: el volumen más cercano que cubre el consumo
-    for(const t of tiers){ if(cred <= t.cred) return t; }
-    return tiers[tiers.length-1];
-  }
-  function suggestedPrice(cred){
-    // precio reventa sugerido = costo * factor de la tabla (aprox curva del Excel)
-    const map = {500:49,1000:79,2000:119,3000:159,5000:229,10000:429,15000:579};
-    const t = pickTier(cred);
-    return map[t.cred];
   }
 
   function calc(){
@@ -393,34 +379,29 @@
     // meter fill (scale to 15k)
     $("fill").style.width = Math.min(100, prom/15000*100)+"%";
 
-    // recommended plan
-    const t = pickTier(prom);
-    $("planName").textContent = (t.plan==="—" ? "Volumen "+fmt(t.cred)+" créditos" : t.plan)
-        + " · "+fmt(t.cred)+" créditos";
-    $("planIco").textContent = planIcons[t.plan]||"📦";
+    // plan recomendado (por citas/mes)
+    const p = pickPlan(citas);
+    $("planName").textContent = "Plan "+p.key+" · "+fmt(p.resp)+" respuestas IA";
+    $("planIco").textContent = p.icon;
 
-    // table highlight + dynamic margin per row
-    buildTable(prom, precio, costoMil, tc);
+    // tabla de planes oficiales con fila activa resaltada
+    buildTable(citas, costoMil);
   }
 
-  function buildTable(activeCred, precio, costoMil, tc){
-    const reventa = {500:49,1000:79,2000:119,3000:159,5000:229,10000:429,15000:579};
-    const active = pickTier(activeCred).cred;
-    const rows = tiers.map(t=>{
-      const cp = t.cred/1000*costoMil;
-      const rev = reventa[t.cred];
-      const mg = rev-cp;
-      const mgPct = rev>0 ? mg/rev*100 : 0;
-      const revMxn = rev*tc;
-      const cls = t.cred===active ? "active" : "";
+  function buildTable(citas, costoMil){
+    const active = pickPlan(citas).key;
+    const rows = plans.map(p=>{
+      const cp = p.resp/1000*costoMil;     // costo partner = respuestas incluidas / 1000 x costo/1k
+      const mg = p.usd - cp;               // margen vs precio de reventa oficial (USD)
+      const cls = p.key===active ? "active" : "";
       return `<tr class="${cls}">
-        <td>${fmt(t.cred)}</td>
+        <td><span class="pill ${p.cls}">${p.icon} ${p.key}</span></td>
+        <td>${fmt(p.resp)}</td>
+        <td>${p.citasTxt}</td>
+        <td>$${fmt(p.usd,0)}</td>
+        <td>$${fmt(p.mxn,0)} MXN</td>
         <td>$${fmt(cp,2)}</td>
-        <td>$${fmt(rev,0)}</td>
         <td>$${fmt(mg,2)}</td>
-        <td>${fmt(mgPct,1)}%</td>
-        <td>$${fmt(revMxn,0)}</td>
-        <td><span class="pill ${t.cls}">${t.plan}</span></td>
       </tr>`;
     }).join("");
     $("tbody").innerHTML = rows;
