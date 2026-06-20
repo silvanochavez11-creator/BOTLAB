@@ -159,6 +159,22 @@
   .reset{background:none;border:1px solid var(--line);color:var(--muted);border-radius:10px;
     padding:8px 14px;cursor:pointer;font-size:13px;margin-top:8px;}
   .reset:hover{border-color:var(--red);color:var(--red);}
+
+  /* auto-fill price indicator */
+  .auto-row{display:flex;align-items:center;gap:10px;margin-top:8px;flex-wrap:wrap;}
+  .auto-tag{font-size:11px;padding:3px 9px;border-radius:999px;border:1px solid var(--line);color:var(--muted);}
+  .auto-tag.on{color:var(--green);border-color:rgba(0,229,160,.4);background:rgba(0,229,160,.08);}
+  .auto-link{background:none;border:none;color:var(--cyan);font-size:12px;cursor:pointer;padding:0;text-decoration:underline;display:none;}
+  .auto-link.show{display:inline;}
+
+  /* action buttons */
+  .actions{display:flex;gap:12px;margin-top:22px;flex-wrap:wrap;}
+  .btn{flex:1;min-width:160px;border:none;border-radius:14px;padding:15px 16px;font-size:15px;font-weight:bold;
+    cursor:pointer;transition:transform .1s, box-shadow .2s;color:#06210f;}
+  .btn:active{transform:scale(.97);}
+  .btn.wa{background:linear-gradient(90deg,#25D366,#1ebe5a);box-shadow:0 10px 24px -10px rgba(37,211,102,.6);}
+  .btn.img{background:linear-gradient(90deg,var(--gold),var(--orange));color:#2A1F00;box-shadow:0 10px 24px -10px rgba(255,209,102,.5);}
+  .btn:hover{box-shadow:0 12px 30px -8px rgba(0,0,0,.5);}
 </style>
 </head>
 <body>
@@ -200,11 +216,15 @@
 
       <div class="field">
         <label for="precio">Precio mensual que le cobrarás
-          <span class="desc">Lo que el cliente te paga a ti cada mes (USD).</span>
+          <span class="desc">Se autollena con el precio del plan recomendado. Puedes cambiarlo.</span>
         </label>
         <div class="inputbox">
           <span class="pre">$</span>
           <input type="number" id="precio" class="has-pre" min="0" step="10" value="229" />
+        </div>
+        <div class="auto-row">
+          <span id="autoTag" class="auto-tag on">⚡ Auto (precio del plan)</span>
+          <button type="button" id="autoBtn" class="auto-link">↻ Volver a usar precio del plan</button>
         </div>
       </div>
 
@@ -283,6 +303,11 @@
           <span class="v" style="color:var(--lila)">$<span id="anual">0</span></span>
         </div>
       </div>
+
+      <div class="actions">
+        <button type="button" id="waBtn" class="btn wa">📲 Compartir por WhatsApp</button>
+        <button type="button" id="imgBtn" class="btn img">🖼️ Guardar imagen</button>
+      </div>
     </section>
   </div>
 
@@ -348,44 +373,57 @@
     requestAnimationFrame(step);
   }
 
-  function calc(){
+  // --- precio autollenado con el plan recomendado (hasta que el usuario lo edite) ---
+  let precioAuto = true;
+
+  function compute(){
     const prospectos = +$("prospectos").value||0;
     const citas      = +$("citas").value||0;
-    const precio     = +$("precio").value||0;
     const costoMil   = +$("costoMil").value||0;
     const tc         = +$("tc").value||0;
     const mMin       = +$("multMin").value||0;
     const mMax       = +$("multMax").value||0;
 
-    const cmin = citas*mMin;
-    const cmax = citas*mMax;
-    const prom = (cmin+cmax)/2;
+    const cmin = citas*mMin, cmax = citas*mMax, prom = (cmin+cmax)/2;
+    const plan = pickPlan(citas);
+
+    // autollenar el precio con el del plan recomendado
+    if(precioAuto){ $("precio").value = plan.usd; }
+    const precio = +$("precio").value||0;
 
     const costo  = prom/1000*costoMil;
     const margen = precio - costo;
     const margenMxn = margen*tc;
     const anual  = margen*12;
     const pct    = precio>0 ? (margen/precio*100) : 0;
+    return {prospectos,citas,precio,costoMil,tc,cmin,cmax,prom,plan,costo,margen,margenMxn,anual,pct};
+  }
 
-    animate($("prom"), prom);
-    animate($("cmin"), cmin);
-    animate($("cmax"), cmax);
-    animate($("costo"), costo, 2);
-    animate($("margen"), margen, 2);
-    animate($("anual"), anual, 0);
-    animate($("pct"), pct, 1);
-    $("margenMxn").textContent = "($"+fmt(margenMxn,0)+" MXN)";
+  function calc(){
+    const r = compute();
+    animate($("prom"), r.prom);
+    animate($("cmin"), r.cmin);
+    animate($("cmax"), r.cmax);
+    animate($("costo"), r.costo, 2);
+    animate($("margen"), r.margen, 2);
+    animate($("anual"), r.anual, 0);
+    animate($("pct"), r.pct, 1);
+    $("margenMxn").textContent = "($"+fmt(r.margenMxn,0)+" MXN)";
 
     // meter fill (scale to 15k)
-    $("fill").style.width = Math.min(100, prom/15000*100)+"%";
+    $("fill").style.width = Math.min(100, r.prom/15000*100)+"%";
 
     // plan recomendado (por citas/mes)
-    const p = pickPlan(citas);
-    $("planName").textContent = "Plan "+p.key+" · "+fmt(p.resp)+" respuestas IA";
-    $("planIco").textContent = p.icon;
+    $("planName").textContent = "Plan "+r.plan.key+" · "+fmt(r.plan.resp)+" respuestas IA";
+    $("planIco").textContent = r.plan.icon;
 
-    // tabla de planes oficiales con fila activa resaltada
-    buildTable(citas, costoMil);
+    // estado del autollenado
+    const tag = $("autoTag");
+    tag.classList.toggle("on", precioAuto);
+    tag.textContent = precioAuto ? "⚡ Auto (precio del plan)" : "✏️ Precio manual";
+    $("autoBtn").classList.toggle("show", !precioAuto);
+
+    buildTable(r.citas, r.costoMil);
   }
 
   function buildTable(citas, costoMil){
@@ -411,13 +449,118 @@
   $("citasRange").addEventListener("input", ()=>{ $("citas").value=$("citasRange").value; calc(); });
   $("citas").addEventListener("input", ()=>{ $("citasRange").value=Math.min(800,$("citas").value); calc(); });
 
-  ids.forEach(i=>{ if(i!=="citas") $(i).addEventListener("input", calc); });
+  // cualquier parámetro recalcula (precio se maneja aparte)
+  ids.forEach(i=>{ if(i!=="citas" && i!=="precio") $(i).addEventListener("input", calc); });
+
+  // al escribir el precio, se desactiva el autollenado
+  $("precio").addEventListener("input", ()=>{ precioAuto=false; calc(); });
+  $("autoBtn").addEventListener("click", ()=>{ precioAuto=true; calc(); });
 
   $("resetBtn").addEventListener("click", ()=>{
     ids.forEach(i=>$(i).value=defaults[i]);
     $("citasRange").value=defaults.citas;
+    precioAuto=true;
     calc();
   });
+
+  /* ================= Imagen para compartir ================= */
+  function rbox(x,bx,by,bw,bh,rad){
+    x.beginPath();
+    x.moveTo(bx+rad,by);
+    x.arcTo(bx+bw,by,bx+bw,by+bh,rad);
+    x.arcTo(bx+bw,by+bh,bx,by+bh,rad);
+    x.arcTo(bx,by+bh,bx,by,rad);
+    x.arcTo(bx,by,bx+bw,by,rad);
+    x.closePath();
+  }
+  function drawCard(r){
+    const W=1080,H=1350,P=70;
+    const cv=document.createElement("canvas"); cv.width=W; cv.height=H;
+    const x=cv.getContext("2d");
+    x.fillStyle="#080C14"; x.fillRect(0,0,W,H);
+    let g=x.createRadialGradient(180,-60,0,180,-60,820);
+    g.addColorStop(0,"rgba(124,111,255,.22)"); g.addColorStop(1,"rgba(124,111,255,0)");
+    x.fillStyle=g; x.fillRect(0,0,W,H);
+    let g2=x.createRadialGradient(W,0,0,W,0,720);
+    g2.addColorStop(0,"rgba(0,229,160,.14)"); g2.addColorStop(1,"rgba(0,229,160,0)");
+    x.fillStyle=g2; x.fillRect(0,0,W,H);
+
+    const box=(bx,by,bw,bh,fill,stroke)=>{
+      rbox(x,bx,by,bw,bh,22);
+      if(fill){x.fillStyle=fill;x.fill();}
+      if(stroke){x.lineWidth=2;x.strokeStyle=stroke;x.stroke();}
+    };
+    x.textAlign="left";
+
+    // header
+    x.fillStyle="#C4BBFF"; x.font="bold 30px Arial"; x.fillText("🤖 BotLab · Partner", P, 95);
+    x.fillStyle="#F0F4FF"; x.font="bold 62px Arial"; x.fillText("Créditos del negocio", P, 172);
+    x.fillStyle="#7A8BA8"; x.font="26px Arial";
+    x.fillText(fmt(r.prospectos)+" prospectos · "+fmt(r.citas)+" citas/ventas al mes", P, 218);
+
+    // créditos box
+    box(P,255,W-2*P,255,"#0E1320","#1E2D42");
+    x.fillStyle="#7A8BA8"; x.font="26px Arial"; x.fillText("Créditos estimados / mes", P+40, 315);
+    x.fillStyle="#FFD166"; x.font="bold 112px Arial"; x.fillText(fmt(r.prom), P+40, 435);
+    x.fillStyle="#7A8BA8"; x.font="28px Arial";
+    x.fillText("mín "+fmt(r.cmin)+"     ·     máx "+fmt(r.cmax), P+40, 485);
+
+    // plan banner
+    box(P,540,W-2*P,150,"rgba(255,209,102,0.10)","rgba(255,209,102,0.35)");
+    x.font="62px Arial"; x.fillText(r.plan.icon, P+35, 632);
+    x.fillStyle="#7A8BA8"; x.font="24px Arial"; x.fillText("Plan recomendado", P+135, 595);
+    x.fillStyle="#FFD166"; x.font="bold 44px Arial";
+    x.fillText("Plan "+r.plan.key+" · $"+fmt(r.plan.usd)+" /mes", P+135, 648);
+
+    // stats 2x2
+    const sw=(W-2*P-24)/2, sh=150, gap=24, sy=725;
+    const stat=(col,row,label,value,color)=>{
+      const bx=P+col*(sw+gap), by=sy+row*(sh+gap);
+      box(bx,by,sw,sh,"#0E1320","#1E2D42");
+      x.fillStyle="#7A8BA8"; x.font="24px Arial"; x.fillText(label,bx+30,by+52);
+      x.fillStyle=color; x.font="bold 48px Arial"; x.fillText(value,bx+30,by+115);
+    };
+    stat(0,0,"Costo partner / mes","$"+fmt(r.costo,2),"#FF4D6A");
+    stat(1,0,"Tu margen / mes","$"+fmt(r.margen,2),"#00E5A0");
+    stat(0,1,"% de margen",fmt(r.pct,1)+"%","#22D3EE");
+    stat(1,1,"Margen anual","$"+fmt(r.anual,0),"#C4BBFF");
+
+    x.fillStyle="#7A8BA8"; x.font="26px Arial";
+    x.fillText("Margen mensual en pesos: $"+fmt(r.margenMxn,0)+" MXN", P, sy+2*sh+gap+72);
+
+    x.fillStyle="#3D5068"; x.font="22px Arial";
+    x.fillText("Calculadora de créditos · BotLab — "+new Date().toLocaleDateString("es-MX"), P, H-55);
+    return cv;
+  }
+  function canvasBlob(cv){ return new Promise(res=>cv.toBlob(res,"image/png")); }
+
+  async function saveImage(){
+    const blob=await canvasBlob(drawCard(compute()));
+    const a=document.createElement("a");
+    a.href=URL.createObjectURL(blob); a.download="creditos-botlab.png";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href),3000);
+  }
+  async function shareWhatsApp(){
+    const r=compute();
+    const blob=await canvasBlob(drawCard(r));
+    const file=new File([blob],"creditos-botlab.png",{type:"image/png"});
+    const text="📊 "+fmt(r.prom)+" créditos/mes · Plan "+r.plan.key+
+      " ($"+fmt(r.plan.usd)+"/mes) · tu margen $"+fmt(r.margen,2)+"/mes ("+fmt(r.pct,1)+"%). — BotLab";
+    // En celular: comparte la imagen directo a WhatsApp
+    if(navigator.canShare && navigator.canShare({files:[file]})){
+      try{ await navigator.share({files:[file], text:text, title:"Créditos BotLab"}); return; }
+      catch(e){ if(e && e.name==="AbortError") return; }
+    }
+    // En compu: descarga la imagen y abre WhatsApp con el texto para adjuntarla
+    const a=document.createElement("a");
+    a.href=URL.createObjectURL(blob); a.download="creditos-botlab.png";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href),3000);
+    window.open("https://wa.me/?text="+encodeURIComponent(text+"\n(imagen descargada 👆, adjúntala al chat)"),"_blank");
+  }
+  $("imgBtn").addEventListener("click", saveImage);
+  $("waBtn").addEventListener("click", shareWhatsApp);
 
   calc();
 })();
