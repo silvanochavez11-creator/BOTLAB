@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>🐀 Calculadora de Créditos — BotLab</title>
+<style>
+  :root{
+    --bg:#080C14;
+    --panel:#0E1320;
+    --panel2:#111827;
+    --line:#1E2D42;
+    --gold:#FFD166;
+    --green:#00E5A0;
+    --red:#FF4D6A;
+    --purple:#7C6FFF;
+    --lila:#C4BBFF;
+    --cyan:#22D3EE;
+    --orange:#FF8C42;
+    --txt:#F0F4FF;
+    --muted:#7A8BA8;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(1200px 600px at 15% -10%, rgba(124,111,255,.18), transparent 60%),
+      radial-gradient(900px 500px at 110% 0%, rgba(0,229,160,.12), transparent 55%),
+      var(--bg);
+    color:var(--txt);
+    font-family:'Trebuchet MS','Segoe UI',system-ui,-apple-system,sans-serif;
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1080px;margin:0 auto;padding:24px 16px 64px;}
+
+  /* ---------- Header ---------- */
+  header{
+    text-align:center;margin-bottom:28px;position:relative;
+  }
+  .badge{
+    display:inline-block;font-size:12px;letter-spacing:2px;text-transform:uppercase;
+    color:var(--lila);border:1px solid rgba(124,111,255,.4);
+    padding:5px 14px;border-radius:999px;background:rgba(124,111,255,.08);
+    margin-bottom:14px;
+  }
+  h1{
+    font-size:clamp(28px,6vw,46px);margin:0;line-height:1.05;
+    background:linear-gradient(90deg,var(--gold),var(--orange) 55%,var(--lila));
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    text-shadow:0 0 40px rgba(255,209,102,.18);
+  }
+  .sub{color:var(--muted);margin-top:10px;font-size:15px;}
+
+  /* ---------- Layout ---------- */
+  .grid{display:grid;grid-template-columns:1fr 1.25fr;gap:20px;align-items:start;}
+  @media(max-width:820px){.grid{grid-template-columns:1fr;}}
+
+  .card{
+    background:linear-gradient(180deg,var(--panel),var(--panel2));
+    border:1px solid var(--line);border-radius:20px;padding:22px;
+    box-shadow:0 20px 50px -25px rgba(0,0,0,.8), inset 0 1px 0 rgba(255,255,255,.03);
+  }
+  .card h2{
+    margin:0 0 4px;font-size:18px;display:flex;align-items:center;gap:9px;
+  }
+  .card .hint{color:var(--muted);font-size:13px;margin:0 0 18px;}
+
+  /* ---------- Inputs ---------- */
+  .field{margin-bottom:18px;}
+  .field label{display:block;font-size:13px;color:var(--lila);margin-bottom:7px;font-weight:bold;}
+  .field .desc{font-size:12px;color:var(--muted);font-weight:normal;display:block;margin-top:2px;}
+  .inputbox{position:relative;}
+  .inputbox .pre{
+    position:absolute;left:14px;top:50%;transform:translateY(-50%);
+    color:var(--muted);font-size:15px;pointer-events:none;
+  }
+  input[type=number]{
+    width:100%;background:#0A0F1A;border:1px solid var(--line);border-radius:12px;
+    color:var(--txt);font-size:20px;font-weight:bold;padding:14px 14px;
+    outline:none;transition:border .15s, box-shadow .15s;
+  }
+  input.has-pre{padding-left:30px;}
+  input[type=number]:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(255,209,102,.15);}
+  input[type=number]::-webkit-outer-spin-button,
+  input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+
+  /* slider for citas */
+  .slider-row{display:flex;align-items:center;gap:14px;margin-top:12px;}
+  input[type=range]{flex:1;-webkit-appearance:none;height:6px;border-radius:6px;
+    background:linear-gradient(90deg,var(--gold),var(--orange));outline:none;}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;
+    background:var(--gold);cursor:pointer;box-shadow:0 0 0 4px rgba(255,209,102,.2),0 2px 8px rgba(0,0,0,.5);}
+  input[type=range]::-moz-range-thumb{width:22px;height:22px;border:none;border-radius:50%;background:var(--gold);cursor:pointer;}
+
+  /* advanced params */
+  details{margin-top:8px;border-top:1px dashed var(--line);padding-top:14px;}
+  summary{cursor:pointer;color:var(--cyan);font-size:13px;list-style:none;user-select:none;}
+  summary::-webkit-details-marker{display:none;}
+  summary::before{content:"⚙ ";}
+  .params-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px;}
+  .params-grid .field{margin:0;}
+  .params-grid input{font-size:15px;padding:10px 12px;}
+
+  /* ---------- Credit meter ---------- */
+  .meter-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;}
+  .meter-head .big{font-size:clamp(34px,8vw,52px);font-weight:bold;color:var(--gold);line-height:1;
+    text-shadow:0 0 30px rgba(255,209,102,.35);}
+  .meter-head .unit{font-size:14px;color:var(--muted);margin-left:6px;}
+  .meter-head .range{font-size:13px;color:var(--muted);text-align:right;}
+  .meter-head .range b{color:var(--lila);}
+  .meter{height:18px;border-radius:999px;background:#0A0F1A;border:1px solid var(--line);overflow:hidden;position:relative;}
+  .meter .fill{height:100%;width:0;border-radius:999px;
+    background:linear-gradient(90deg,var(--green),var(--cyan) 60%,var(--gold));
+    transition:width .6s cubic-bezier(.2,.8,.2,1);box-shadow:0 0 16px rgba(34,211,238,.5);}
+  .meter-scale{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:6px;}
+
+  /* ---------- Result stats ---------- */
+  .stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:22px;}
+  @media(max-width:480px){.stats{grid-template-columns:1fr;}}
+  .stat{background:#0A0F1A;border:1px solid var(--line);border-radius:14px;padding:14px 16px;position:relative;overflow:hidden;}
+  .stat .k{font-size:12px;color:var(--muted);margin-bottom:6px;display:block;}
+  .stat .v{font-size:24px;font-weight:bold;line-height:1;}
+  .stat .v small{font-size:13px;color:var(--muted);font-weight:normal;}
+  .stat.cost .v{color:var(--red);}
+  .stat.margin .v{color:var(--green);}
+  .stat.plan .v{color:var(--gold);font-size:20px;}
+  .stat.pct .v{color:var(--cyan);}
+  .stat::after{content:"";position:absolute;right:-20px;top:-20px;width:60px;height:60px;border-radius:50%;
+    background:radial-gradient(circle,rgba(124,111,255,.18),transparent 70%);}
+
+  .plan-banner{
+    margin-top:22px;border-radius:16px;padding:16px 18px;display:flex;align-items:center;gap:14px;
+    background:linear-gradient(90deg,rgba(255,209,102,.14),rgba(124,111,255,.10));
+    border:1px solid rgba(255,209,102,.35);
+  }
+  .plan-banner .ico{font-size:30px;}
+  .plan-banner .t{font-size:13px;color:var(--muted);}
+  .plan-banner .p{font-size:20px;font-weight:bold;color:var(--gold);}
+
+  /* ---------- Reventa table ---------- */
+  .table-card{margin-top:20px;}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th,td{padding:10px 8px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap;}
+  th:first-child,td:first-child{text-align:left;}
+  th{color:var(--lila);font-size:11px;text-transform:uppercase;letter-spacing:.5px;}
+  tbody tr{transition:background .2s;}
+  tbody tr.active{background:linear-gradient(90deg,rgba(255,209,102,.12),transparent);}
+  tbody tr.active td{color:var(--gold);font-weight:bold;}
+  .pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:bold;}
+  .pill.bronce{background:rgba(217,138,78,.2);color:#D98A4E;}
+  .pill.plata{background:rgba(122,139,168,.2);color:#9FB0C8;}
+  .pill.oro{background:rgba(255,209,102,.2);color:var(--gold);}
+  .pill.diamante{background:rgba(34,211,238,.2);color:var(--cyan);}
+  .pill.none{color:var(--muted);}
+  .table-scroll{overflow-x:auto;}
+
+  footer{text-align:center;color:var(--muted);font-size:12px;margin-top:34px;line-height:1.6;}
+  .reset{background:none;border:1px solid var(--line);color:var(--muted);border-radius:10px;
+    padding:8px 14px;cursor:pointer;font-size:13px;margin-top:8px;}
+  .reset:hover{border-color:var(--red);color:var(--red);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <span class="badge">🐀 BotLab · Partner</span>
+    <h1>Calculadora de Créditos</h1>
+    <p class="sub">¿Cuántos créditos consume un negocio al mes? Mete sus datos y míralo al instante.</p>
+  </header>
+
+  <div class="grid">
+
+    <!-- ============ INPUTS ============ -->
+    <section class="card">
+      <h2>🎯 Datos del negocio</h2>
+      <p class="hint">Pregúntale esto al cliente en la asesoría.</p>
+
+      <div class="field">
+        <label for="prospectos">Prospectos que recibe al mes
+          <span class="desc">Cuántas personas le escriben (no define el plan, es referencia).</span>
+        </label>
+        <div class="inputbox">
+          <input type="number" id="prospectos" min="0" step="10" value="600" />
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="citas">Citas o ventas que cierra al mes
+          <span class="desc">⭐ Esto es lo que define los créditos y el plan.</span>
+        </label>
+        <div class="inputbox">
+          <input type="number" id="citas" min="0" step="5" value="150" />
+        </div>
+        <div class="slider-row">
+          <input type="range" id="citasRange" min="0" max="800" step="5" value="150" />
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="precio">Precio mensual que le cobrarás
+          <span class="desc">Lo que el cliente te paga a ti cada mes (USD).</span>
+        </label>
+        <div class="inputbox">
+          <span class="pre">$</span>
+          <input type="number" id="precio" class="has-pre" min="0" step="10" value="229" />
+        </div>
+      </div>
+
+      <details>
+        <summary>Parámetros base (mayoreo partner)</summary>
+        <div class="params-grid">
+          <div class="field">
+            <label>Paquete partner (USD)</label>
+            <input type="number" id="paquete" value="539" step="1" />
+          </div>
+          <div class="field">
+            <label>Créditos incluidos</label>
+            <input type="number" id="creditosIncl" value="20000" step="100" />
+          </div>
+          <div class="field">
+            <label>Costo x 1.000 créditos (USD)</label>
+            <input type="number" id="costoMil" value="26.95" step="0.01" />
+          </div>
+          <div class="field">
+            <label>Tipo de cambio MXN/USD</label>
+            <input type="number" id="tc" value="17.40" step="0.01" />
+          </div>
+          <div class="field">
+            <label>Créditos por cita (mín)</label>
+            <input type="number" id="multMin" value="10" step="1" />
+          </div>
+          <div class="field">
+            <label>Créditos por cita (máx)</label>
+            <input type="number" id="multMax" value="15" step="1" />
+          </div>
+        </div>
+        <button class="reset" id="resetBtn">↺ Restaurar valores</button>
+      </details>
+    </section>
+
+    <!-- ============ RESULTS ============ -->
+    <section class="card">
+      <h2>⚡ Consumo estimado</h2>
+      <p class="hint">Regla: créditos del mes ≈ citas cerradas × 10 a 15.</p>
+
+      <div class="meter-head">
+        <div>
+          <span class="big" id="prom">0</span><span class="unit">créditos / mes</span>
+        </div>
+        <div class="range">
+          <div>mín <b id="cmin">0</b></div>
+          <div>máx <b id="cmax">0</b></div>
+        </div>
+      </div>
+      <div class="meter"><div class="fill" id="fill"></div></div>
+      <div class="meter-scale"><span>0</span><span>5k</span><span>10k</span><span>15k+</span></div>
+
+      <div class="plan-banner">
+        <span class="ico" id="planIco">🥇</span>
+        <div>
+          <div class="t">Plan PyME recomendado (por consumo)</div>
+          <div class="p" id="planName">—</div>
+        </div>
+      </div>
+
+      <div class="stats">
+        <div class="stat cost">
+          <span class="k">Costo para ti (partner) / mes</span>
+          <span class="v">$<span id="costo">0</span></span>
+        </div>
+        <div class="stat margin">
+          <span class="k">Tu margen / mes</span>
+          <span class="v">$<span id="margen">0</span> <small id="margenMxn">($0 MXN)</small></span>
+        </div>
+        <div class="stat pct">
+          <span class="k">% de margen sobre lo que cobras</span>
+          <span class="v"><span id="pct">0</span>%</span>
+        </div>
+        <div class="stat">
+          <span class="k">Margen anual por este cliente</span>
+          <span class="v" style="color:var(--lila)">$<span id="anual">0</span></span>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============ REVENTA TABLE ============ -->
+  <section class="card table-card">
+    <h2>📊 Tabla de reventa por volumen</h2>
+    <p class="hint">Se resalta el plan donde cae el consumo del negocio. Precios validados en botlab.app.</p>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Créditos / mes</th>
+            <th>Costo partner</th>
+            <th>Reventa sugerida</th>
+            <th>Margen $</th>
+            <th>Margen %</th>
+            <th>Reventa MXN</th>
+            <th>Plan público</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>
+    Hecho para BotLab · Lógica tomada del Excel "Calculadora_Creditos_Para_Entregar_Partner".<br/>
+    El plan se asigna por número de <b>citas/ventas</b>, no por prospectos. No promete ingresos garantizados.
+  </footer>
+</div>
+
+<script>
+(function(){
+  // --- Reventa tiers (volumen, plan público) ---
+  const tiers = [
+    {cred:500,   plan:"—",        cls:"none"},
+    {cred:1000,  plan:"Bronce",   cls:"bronce"},
+    {cred:2000,  plan:"Plata",    cls:"plata"},
+    {cred:3000,  plan:"—",        cls:"none"},
+    {cred:5000,  plan:"Oro",      cls:"oro"},
+    {cred:10000, plan:"—",        cls:"none"},
+    {cred:15000, plan:"Diamante", cls:"diamante"},
+  ];
+  const planIcons = {"Bronce":"🥉","Plata":"🥈","Oro":"🥇","Diamante":"💎","—":"📦"};
+
+  const $ = id => document.getElementById(id);
+  const ids = ["prospectos","citas","precio","paquete","creditosIncl","costoMil","tc","multMin","multMax"];
+  const defaults = {};
+  ids.forEach(i=>defaults[i]=$(i).value);
+
+  const fmt = (n,d=0)=> n.toLocaleString("es-MX",{minimumFractionDigits:d,maximumFractionDigits:d});
+
+  // animated counter
+  function animate(el, to, decimals=0, prefixSep=true){
+    const from = parseFloat((el.dataset.val||"0"));
+    el.dataset.val = to;
+    const start = performance.now(), dur=500;
+    function step(t){
+      const p = Math.min(1,(t-start)/dur);
+      const e = 1-Math.pow(1-p,3);
+      const val = from + (to-from)*e;
+      el.textContent = fmt(val, decimals);
+      if(p<1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  function pickTier(cred){
+    // plan recomendado: el volumen más cercano que cubre el consumo
+    for(const t of tiers){ if(cred <= t.cred) return t; }
+    return tiers[tiers.length-1];
+  }
+  function suggestedPrice(cred){
+    // precio reventa sugerido = costo * factor de la tabla (aprox curva del Excel)
+    const map = {500:49,1000:79,2000:119,3000:159,5000:229,10000:429,15000:579};
+    const t = pickTier(cred);
+    return map[t.cred];
+  }
+
+  function calc(){
+    const prospectos = +$("prospectos").value||0;
+    const citas      = +$("citas").value||0;
+    const precio     = +$("precio").value||0;
+    const costoMil   = +$("costoMil").value||0;
+    const tc         = +$("tc").value||0;
+    const mMin       = +$("multMin").value||0;
+    const mMax       = +$("multMax").value||0;
+
+    const cmin = citas*mMin;
+    const cmax = citas*mMax;
+    const prom = (cmin+cmax)/2;
+
+    const costo  = prom/1000*costoMil;
+    const margen = precio - costo;
+    const margenMxn = margen*tc;
+    const anual  = margen*12;
+    const pct    = precio>0 ? (margen/precio*100) : 0;
+
+    animate($("prom"), prom);
+    animate($("cmin"), cmin);
+    animate($("cmax"), cmax);
+    animate($("costo"), costo, 2);
+    animate($("margen"), margen, 2);
+    animate($("anual"), anual, 0);
+    animate($("pct"), pct, 1);
+    $("margenMxn").textContent = "($"+fmt(margenMxn,0)+" MXN)";
+
+    // meter fill (scale to 15k)
+    $("fill").style.width = Math.min(100, prom/15000*100)+"%";
+
+    // recommended plan
+    const t = pickTier(prom);
+    $("planName").textContent = (t.plan==="—" ? "Volumen "+fmt(t.cred)+" créditos" : t.plan)
+        + " · "+fmt(t.cred)+" créditos";
+    $("planIco").textContent = planIcons[t.plan]||"📦";
+
+    // table highlight + dynamic margin per row
+    buildTable(prom, precio, costoMil, tc);
+  }
+
+  function buildTable(activeCred, precio, costoMil, tc){
+    const reventa = {500:49,1000:79,2000:119,3000:159,5000:229,10000:429,15000:579};
+    const active = pickTier(activeCred).cred;
+    const rows = tiers.map(t=>{
+      const cp = t.cred/1000*costoMil;
+      const rev = reventa[t.cred];
+      const mg = rev-cp;
+      const mgPct = rev>0 ? mg/rev*100 : 0;
+      const revMxn = rev*tc;
+      const cls = t.cred===active ? "active" : "";
+      return `<tr class="${cls}">
+        <td>${fmt(t.cred)}</td>
+        <td>$${fmt(cp,2)}</td>
+        <td>$${fmt(rev,0)}</td>
+        <td>$${fmt(mg,2)}</td>
+        <td>${fmt(mgPct,1)}%</td>
+        <td>$${fmt(revMxn,0)}</td>
+        <td><span class="pill ${t.cls}">${t.plan}</span></td>
+      </tr>`;
+    }).join("");
+    $("tbody").innerHTML = rows;
+  }
+
+  // sync slider <-> citas input
+  $("citasRange").addEventListener("input", ()=>{ $("citas").value=$("citasRange").value; calc(); });
+  $("citas").addEventListener("input", ()=>{ $("citasRange").value=Math.min(800,$("citas").value); calc(); });
+
+  ids.forEach(i=>{ if(i!=="citas") $(i).addEventListener("input", calc); });
+
+  $("resetBtn").addEventListener("click", ()=>{
+    ids.forEach(i=>$(i).value=defaults[i]);
+    $("citasRange").value=defaults.citas;
+    calc();
+  });
+
+  calc();
+})();
+</script>
+</body>
+</html>
