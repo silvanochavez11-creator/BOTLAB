@@ -176,6 +176,15 @@
   .btn.wa{background:linear-gradient(90deg,#25D366,#1ebe5a);box-shadow:0 10px 24px -10px rgba(37,211,102,.6);}
   .btn.img{background:linear-gradient(90deg,var(--gold),var(--orange));color:#2A1F00;box-shadow:0 10px 24px -10px rgba(255,209,102,.5);}
   .btn:hover{box-shadow:0 12px 30px -8px rgba(0,0,0,.5);}
+
+  /* business type selector */
+  .biztypes{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  .biz-btn{background:#0A0F1A;border:1px solid var(--line);border-radius:12px;padding:11px 12px;
+    color:var(--txt);font-size:13px;font-weight:bold;cursor:pointer;text-align:left;transition:all .15s;line-height:1.2;}
+  .biz-btn small{display:block;color:var(--muted);font-weight:normal;font-size:11px;margin-top:3px;}
+  .biz-btn:hover{border-color:var(--purple);}
+  .biz-btn.active{border-color:var(--gold);background:rgba(255,209,102,.10);box-shadow:0 0 0 2px rgba(255,209,102,.15) inset;}
+  .biz-desc{font-size:12px;color:var(--cyan);margin-top:10px;min-height:16px;}
 </style>
 </head>
 <body>
@@ -195,23 +204,31 @@
       <p class="hint">Pregúntale esto al cliente en la asesoría.</p>
 
       <div class="field">
-        <label for="prospectos">Prospectos que recibe al mes
-          <span class="desc">Cuántas personas le escriben (no define el plan, es referencia).</span>
+        <label>Tipo de negocio
+          <span class="desc">Cada tipo consume distinto: 1 crédito = 1 respuesta de la IA.</span>
         </label>
-        <div class="inputbox">
-          <input type="number" id="prospectos" min="0" step="10" value="600" />
-        </div>
+        <div class="biztypes" id="biztypes"></div>
+        <div class="biz-desc" id="bizDesc"></div>
       </div>
 
       <div class="field">
-        <label for="citas">Citas o ventas que cierra al mes
-          <span class="desc">⭐ Esto es lo que define los créditos y el plan.</span>
+        <label for="citas" id="volLabel">Interacciones al mes
+          <span class="desc" id="volDesc">⭐ Esto define los créditos y el plan.</span>
         </label>
         <div class="inputbox">
           <input type="number" id="citas" min="0" step="5" value="150" />
         </div>
         <div class="slider-row">
           <input type="range" id="citasRange" min="0" max="800" step="5" value="150" />
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="prospectos">Prospectos que recibe al mes
+          <span class="desc">Opcional, solo referencia (no cambia el cálculo).</span>
+        </label>
+        <div class="inputbox">
+          <input type="number" id="prospectos" min="0" step="10" value="600" />
         </div>
       </div>
 
@@ -226,6 +243,15 @@
         <div class="auto-row">
           <span id="autoTag" class="auto-tag on">⚡ Auto (precio del plan)</span>
           <button type="button" id="autoBtn" class="auto-link">↻ Volver a usar precio del plan</button>
+        </div>
+      </div>
+
+      <div class="field" id="margenObjField" style="display:none">
+        <label for="margenObj">🏢 Margen objetivo % (cuenta grande)
+          <span class="desc">El negocio supera el plan Diamante. Elige el % que quieres ganar y calculo el precio a cobrar.</span>
+        </label>
+        <div class="inputbox">
+          <input type="number" id="margenObj" min="1" max="95" step="5" value="40" />
         </div>
       </div>
 
@@ -249,11 +275,11 @@
             <input type="number" id="tc" value="17.40" step="0.01" />
           </div>
           <div class="field">
-            <label>Créditos por cita (mín)</label>
+            <label>Créditos por interacción (mín)</label>
             <input type="number" id="multMin" value="10" step="1" />
           </div>
           <div class="field">
-            <label>Créditos por cita (máx)</label>
+            <label>Créditos por interacción (máx)</label>
             <input type="number" id="multMax" value="15" step="1" />
           </div>
         </div>
@@ -264,7 +290,7 @@
     <!-- ============ RESULTS ============ -->
     <section class="card">
       <h2>⚡ Consumo estimado</h2>
-      <p class="hint">Regla: créditos del mes ≈ citas cerradas × 10 a 15.</p>
+      <p class="hint">Créditos del mes ≈ interacciones × créditos por interacción (según el tipo de negocio).</p>
 
       <div class="meter-head">
         <div>
@@ -276,12 +302,12 @@
         </div>
       </div>
       <div class="meter"><div class="fill" id="fill"></div></div>
-      <div class="meter-scale"><span>0</span><span>5k</span><span>10k</span><span>15k+</span></div>
+      <div class="meter-scale"><span id="sc0">0</span><span id="sc1">5k</span><span id="sc2">10k</span><span id="sc3">15k+</span></div>
 
       <div class="plan-banner">
         <span class="ico" id="planIco">🥇</span>
         <div>
-          <div class="t">Plan PyME recomendado (según citas/mes)</div>
+          <div class="t" id="planLabel">Plan recomendado (según créditos/mes)</div>
           <div class="p" id="planName">—</div>
         </div>
       </div>
@@ -315,14 +341,14 @@
   <!-- ============ REVENTA TABLE ============ -->
   <section class="card table-card">
     <h2>📊 Planes sugeridos (PyME)</h2>
-    <p class="hint">Datos oficiales de botlab.app (fijos, no cambian). Se resalta el plan que le toca al negocio según sus citas/mes.</p>
+    <p class="hint">Precios oficiales de botlab.app (fijos). La columna de interacciones se ajusta al tipo de negocio. Se resalta el plan que le toca según sus créditos/mes.</p>
     <div class="table-scroll">
       <table>
         <thead>
           <tr>
             <th>Plan</th>
-            <th>Respuestas IA</th>
-            <th>Citas / mes</th>
+            <th>Créditos incluidos</th>
+            <th id="unitHead">≈ interacciones/mes</th>
             <th>Reventa USD</th>
             <th>Reventa MXN</th>
             <th>Tu costo partner</th>
@@ -335,25 +361,44 @@
   </section>
 
   <footer>
-    Hecho para BotLab · Lógica tomada del Excel "Calculadora_Creditos_Para_Entregar_Partner".<br/>
-    El plan se asigna por número de <b>citas/ventas</b>, no por prospectos. No promete ingresos garantizados.
+    Hecho para BotLab · 1 crédito = 1 respuesta de la IA. Cada tipo de negocio consume distinto por interacción.<br/>
+    El plan se asigna por <b>créditos consumidos al mes</b>. Cuentas mayores a Diamante se cotizan por margen objetivo. No promete ingresos garantizados.
   </footer>
 </div>
 
 <script>
 (function(){
-  // --- Planes oficiales botlab.app (datos FIJOS, no se recalculan) ---
+  // --- Planes oficiales botlab.app como CUBETAS DE CRÉDITOS (datos FIJOS) ---
+  // 1 crédito = 1 respuesta de la IA. resp = créditos/respuestas incluidos al mes.
   const plans = [
-    {key:"Bronce",   icon:"🥉", cls:"bronce",   resp:1000,  citasMax:70,     citasTxt:"~40–70",     usd:79,  mxn:1249, ideal:"1 sucursal · 1-7 especialistas"},
-    {key:"Plata",    icon:"🥈", cls:"plata",    resp:2000,  citasMax:140,    citasTxt:"~100–140",   usd:119, mxn:1949, ideal:"1-2 sucursales · 2-15 especialistas"},
-    {key:"Oro",      icon:"🥇", cls:"oro",      resp:5000,  citasMax:350,    citasTxt:"~200–350",   usd:229, mxn:3949, ideal:"1-5 sucursales · 5-30 especialistas"},
-    {key:"Diamante", icon:"💎", cls:"diamante", resp:15000, citasMax:1000000,citasTxt:"~600–1.000", usd:579, mxn:9949, ideal:"Franquicias/cadenas · 30+ especialistas"},
+    {key:"Bronce",   icon:"🥉", cls:"bronce",   resp:1000,  usd:79,  mxn:1249},
+    {key:"Plata",    icon:"🥈", cls:"plata",    resp:2000,  usd:119, mxn:1949},
+    {key:"Oro",      icon:"🥇", cls:"oro",      resp:5000,  usd:229, mxn:3949},
+    {key:"Diamante", icon:"💎", cls:"diamante", resp:15000, usd:579, mxn:9949},
   ];
-  // El plan se asigna por número de citas/ventas: el primero cuyo tope cubra las citas.
-  function pickPlan(citas){ for(const p of plans){ if(citas <= p.citasMax) return p; } return plans[plans.length-1]; }
+  // Plan = la cubeta más chica que cubra los créditos consumidos. Si supera Diamante -> null (cuenta grande).
+  function pickPlanByCredits(cred){ for(const p of plans){ if(cred <= p.resp) return p; } return null; }
+
+  // --- Tipos de negocio: cuántos créditos (respuestas IA) gasta cada interacción ---
+  const bizTypes = [
+    {id:"pedidos", icon:"🛵", label:"Solo pedidos",      unit:"pedidos",
+     desc:"Gasera, tienda, comida: recibe el pedido y confirma. Conversación corta.",
+     cmin:1,  cmax:5,  sliderMax:30000, sliderStep:500, vol:2000},
+    {id:"citas",   icon:"📅", label:"Agenda / citas",    unit:"citas",
+     desc:"Clínica, salón, consultorio: agenda, responde y pregunta. Conversación larga.",
+     cmin:10, cmax:15, sliderMax:800,   sliderStep:5,   vol:150},
+    {id:"soporte", icon:"💬", label:"Atención / soporte", unit:"conversaciones",
+     desc:"Responde dudas e informa. Consumo medio por conversación.",
+     cmin:4,  cmax:8,  sliderMax:6000,  sliderStep:50,  vol:800},
+    {id:"otro",    icon:"⚙️", label:"Personalizado",     unit:"interacciones",
+     desc:"Tú defines cuántos créditos (respuestas) consume cada interacción abajo.",
+     cmin:1,  cmax:5,  sliderMax:10000, sliderStep:50,  vol:1000},
+  ];
+  let bizId = "citas";
+  const biz = () => bizTypes.find(b=>b.id===bizId);
 
   const $ = id => document.getElementById(id);
-  const ids = ["prospectos","citas","precio","paquete","creditosIncl","costoMil","tc","multMin","multMax"];
+  const ids = ["prospectos","citas","precio","paquete","creditosIncl","costoMil","tc","multMin","multMax","margenObj"];
   const defaults = {};
   ids.forEach(i=>defaults[i]=$(i).value);
 
@@ -378,26 +423,38 @@
   let precioAuto = true;
 
   function compute(){
+    const b = biz();
     const prospectos = +$("prospectos").value||0;
-    const citas      = +$("citas").value||0;
+    const vol        = +$("citas").value||0;   // interacciones/mes (pedidos, citas, etc.)
     const costoMil   = +$("costoMil").value||0;
     const tc         = +$("tc").value||0;
     const mMin       = +$("multMin").value||0;
     const mMax       = +$("multMax").value||0;
+    const margenObj  = +$("margenObj").value||0;
 
-    const cmin = citas*mMin, cmax = citas*mMax, prom = (cmin+cmax)/2;
-    const plan = pickPlan(citas);
+    const cmin = vol*mMin, cmax = vol*mMax, prom = (cmin+cmax)/2;
+    const costo = prom/1000*costoMil;
 
-    // autollenar el precio con el del plan recomendado
-    if(precioAuto){ $("precio").value = plan.usd; }
+    // Plan por créditos consumidos; si supera Diamante -> cuenta grande
+    const plan = pickPlanByCredits(prom);
+    const isCustom = !plan;
+
+    // Precio sugerido: cuenta normal = precio del plan; cuenta grande = por margen objetivo
+    let sugerido;
+    if(isCustom){
+      const m = Math.min(94, Math.max(0, margenObj))/100;   // margen sobre el precio
+      sugerido = costo / (1 - m);
+    } else {
+      sugerido = plan.usd;
+    }
+    if(precioAuto){ $("precio").value = Math.round(sugerido*100)/100; }
     const precio = +$("precio").value||0;
 
-    const costo  = prom/1000*costoMil;
     const margen = precio - costo;
     const margenMxn = margen*tc;
     const anual  = margen*12;
     const pct    = precio>0 ? (margen/precio*100) : 0;
-    return {prospectos,citas,precio,costoMil,tc,cmin,cmax,prom,plan,costo,margen,margenMxn,anual,pct};
+    return {b,prospectos,vol,costoMil,tc,mMin,mMax,cmin,cmax,prom,plan,isCustom,sugerido,precio,costo,margen,margenMxn,anual,pct};
   }
 
   function calc(){
@@ -411,44 +468,97 @@
     animate($("pct"), r.pct, 1);
     $("margenMxn").textContent = "($"+fmt(r.margenMxn,0)+" MXN)";
 
-    // meter fill (scale to 15k)
-    $("fill").style.width = Math.min(100, r.prom/15000*100)+"%";
+    // medidor con escala dinámica (crece si es cuenta grande)
+    const scaleMax = r.isCustom ? Math.max(15000, Math.ceil(r.prom/5000)*5000) : 15000;
+    $("fill").style.width = Math.min(100, r.prom/scaleMax*100)+"%";
+    const kf = n => n>=1000 ? (Math.round(n/100)/10)+"k" : String(n);
+    $("sc0").textContent = "0";
+    $("sc1").textContent = kf(Math.round(scaleMax/3));
+    $("sc2").textContent = kf(Math.round(scaleMax*2/3));
+    $("sc3").textContent = kf(scaleMax)+(r.isCustom?"":"+");
 
-    // plan recomendado (por citas/mes)
-    $("planName").textContent = "Plan "+r.plan.key+" · "+fmt(r.plan.resp)+" respuestas IA";
-    $("planIco").textContent = r.plan.icon;
+    // plan recomendado / cuenta grande
+    if(r.isCustom){
+      $("planIco").textContent = "🏢";
+      $("planLabel").textContent = "Cuenta grande (supera Diamante) — precio por margen objetivo";
+      $("planName").textContent = "Personalizado · "+fmt(r.prom)+" créditos ("+fmt(r.pct,0)+"% margen)";
+    } else {
+      $("planIco").textContent = r.plan.icon;
+      $("planLabel").textContent = "Plan recomendado (según créditos/mes)";
+      $("planName").textContent = "Plan "+r.plan.key+" · "+fmt(r.plan.resp)+" créditos/mes";
+    }
+    $("margenObjField").style.display = r.isCustom ? "" : "none";
 
     // estado del autollenado
     const tag = $("autoTag");
     tag.classList.toggle("on", precioAuto);
-    tag.textContent = precioAuto ? "⚡ Auto (precio del plan)" : "✏️ Precio manual";
+    tag.textContent = precioAuto ? (r.isCustom ? "⚡ Auto (por margen objetivo)" : "⚡ Auto (precio del plan)") : "✏️ Precio manual";
     $("autoBtn").classList.toggle("show", !precioAuto);
 
-    buildTable(r.citas, r.costoMil);
+    buildTable(r);
   }
 
-  function buildTable(citas, costoMil){
-    const active = pickPlan(citas).key;
-    const rows = plans.map(p=>{
-      const cp = p.resp/1000*costoMil;     // costo partner = respuestas incluidas / 1000 x costo/1k
-      const mg = p.usd - cp;               // margen vs precio de reventa oficial (USD)
-      const cls = p.key===active ? "active" : "";
+  function buildTable(r){
+    const avgCred = (r.mMin + r.mMax)/2 || 1;
+    $("unitHead").textContent = "≈ "+r.b.unit+"/mes";
+    let rows = plans.map(p=>{
+      const cp = p.resp/1000*r.costoMil;
+      const mg = p.usd - cp;
+      const equiv = Math.round(p.resp/avgCred);
+      const cls = (!r.isCustom && r.plan && p.key===r.plan.key) ? "active" : "";
       return `<tr class="${cls}">
         <td><span class="pill ${p.cls}">${p.icon} ${p.key}</span></td>
         <td>${fmt(p.resp)}</td>
-        <td>${p.citasTxt}</td>
+        <td>~${fmt(equiv)}</td>
         <td>$${fmt(p.usd,0)}</td>
         <td>$${fmt(p.mxn,0)} MXN</td>
         <td>$${fmt(cp,2)}</td>
         <td>$${fmt(mg,2)}</td>
       </tr>`;
     }).join("");
+    if(r.isCustom){
+      rows += `<tr class="active">
+        <td><span class="pill" style="background:rgba(124,111,255,.2);color:var(--lila)">🏢 Personalizado</span></td>
+        <td>${fmt(Math.round(r.prom))}</td>
+        <td>~${fmt(r.vol)}</td>
+        <td>$${fmt(r.precio,0)}</td>
+        <td>$${fmt(r.precio*r.tc,0)} MXN</td>
+        <td>$${fmt(r.costo,2)}</td>
+        <td>$${fmt(r.margen,2)}</td>
+      </tr>`;
+    }
     $("tbody").innerHTML = rows;
   }
 
-  // sync slider <-> citas input
+  /* ============ Tipos de negocio ============ */
+  function renderBiz(){
+    $("biztypes").innerHTML = bizTypes.map(b=>
+      `<button type="button" class="biz-btn${b.id===bizId?' active':''}" data-id="${b.id}">
+        ${b.icon} ${b.label}<small>${b.cmin}–${b.cmax} créd. c/u</small>
+      </button>`).join("");
+    $("biztypes").querySelectorAll(".biz-btn").forEach(el=>
+      el.addEventListener("click", ()=>selectBiz(el.dataset.id)));
+  }
+  function applyBizUI(){
+    const b = biz();
+    $("volLabel").childNodes[0].nodeValue = "Interacciones al mes ("+b.unit+") ";
+    $("volDesc").textContent = "⭐ Cuántos "+b.unit+" atiende al mes. Esto define los créditos.";
+    $("bizDesc").textContent = b.desc;
+    $("citasRange").max = b.sliderMax; $("citasRange").step = b.sliderStep; $("citas").step = b.sliderStep;
+    $("citasRange").value = Math.min(b.sliderMax, +$("citas").value||0);
+    renderBiz();
+  }
+  function selectBiz(id){
+    bizId = id; const b = biz();
+    $("multMin").value = b.cmin; $("multMax").value = b.cmax;
+    $("citas").value = b.vol;
+    precioAuto = true;
+    applyBizUI(); calc();
+  }
+
+  // sync slider <-> volumen
   $("citasRange").addEventListener("input", ()=>{ $("citas").value=$("citasRange").value; calc(); });
-  $("citas").addEventListener("input", ()=>{ $("citasRange").value=Math.min(800,$("citas").value); calc(); });
+  $("citas").addEventListener("input", ()=>{ $("citasRange").value=Math.min(+$("citasRange").max, $("citas").value); calc(); });
 
   // cualquier parámetro recalcula (precio se maneja aparte)
   ids.forEach(i=>{ if(i!=="citas" && i!=="precio") $(i).addEventListener("input", calc); });
@@ -459,9 +569,9 @@
 
   $("resetBtn").addEventListener("click", ()=>{
     ids.forEach(i=>$(i).value=defaults[i]);
-    $("citasRange").value=defaults.citas;
+    bizId="citas";
     precioAuto=true;
-    calc();
+    applyBizUI(); calc();
   });
 
   /* ================= Imagen para compartir ================= */
@@ -497,7 +607,7 @@
     x.fillStyle="#C4BBFF"; x.font="bold 30px Arial"; x.fillText("🤖 BotLab · Partner", P, 95);
     x.fillStyle="#F0F4FF"; x.font="bold 62px Arial"; x.fillText("Créditos del negocio", P, 172);
     x.fillStyle="#7A8BA8"; x.font="26px Arial";
-    x.fillText(fmt(r.prospectos)+" prospectos · "+fmt(r.citas)+" citas/ventas al mes", P, 218);
+    x.fillText(r.b.icon+" "+r.b.label+" · "+fmt(r.vol)+" "+r.b.unit+" / mes", P, 218);
 
     // créditos box
     box(P,255,W-2*P,255,"#0E1320","#1E2D42");
@@ -508,10 +618,17 @@
 
     // plan banner
     box(P,540,W-2*P,150,"rgba(255,209,102,0.10)","rgba(255,209,102,0.35)");
-    x.font="62px Arial"; x.fillText(r.plan.icon, P+35, 632);
-    x.fillStyle="#7A8BA8"; x.font="24px Arial"; x.fillText("Plan recomendado", P+135, 595);
-    x.fillStyle="#FFD166"; x.font="bold 44px Arial";
-    x.fillText("Plan "+r.plan.key+" · $"+fmt(r.plan.usd)+" /mes", P+135, 648);
+    if(r.isCustom){
+      x.font="62px Arial"; x.fillText("🏢", P+35, 632);
+      x.fillStyle="#7A8BA8"; x.font="24px Arial"; x.fillText("Cuenta grande (personalizado)", P+135, 595);
+      x.fillStyle="#FFD166"; x.font="bold 44px Arial";
+      x.fillText("$"+fmt(r.precio)+" /mes · "+fmt(r.pct,0)+"% margen", P+135, 648);
+    } else {
+      x.font="62px Arial"; x.fillText(r.plan.icon, P+35, 632);
+      x.fillStyle="#7A8BA8"; x.font="24px Arial"; x.fillText("Plan recomendado", P+135, 595);
+      x.fillStyle="#FFD166"; x.font="bold 44px Arial";
+      x.fillText("Plan "+r.plan.key+" · $"+fmt(r.plan.usd)+" /mes", P+135, 648);
+    }
 
     // stats 2x2
     const sw=(W-2*P-24)/2, sh=150, gap=24, sy=725;
@@ -546,8 +663,9 @@
     const r=compute();
     const blob=await canvasBlob(drawCard(r));
     const file=new File([blob],"creditos-botlab.png",{type:"image/png"});
-    const text="📊 "+fmt(r.prom)+" créditos/mes · Plan "+r.plan.key+
-      " ($"+fmt(r.plan.usd)+"/mes) · tu margen $"+fmt(r.margen,2)+"/mes ("+fmt(r.pct,1)+"%). — BotLab";
+    const planTxt = r.isCustom ? "Personalizado ($"+fmt(r.precio)+"/mes)" : "Plan "+r.plan.key+" ($"+fmt(r.plan.usd)+"/mes)";
+    const text="📊 "+fmt(r.prom)+" créditos/mes · "+planTxt+
+      " · tu margen $"+fmt(r.margen,2)+"/mes ("+fmt(r.pct,1)+"%). — BotLab";
     // En celular: comparte la imagen directo a WhatsApp
     if(navigator.canShare && navigator.canShare({files:[file]})){
       try{ await navigator.share({files:[file], text:text, title:"Créditos BotLab"}); return; }
@@ -563,6 +681,7 @@
   $("imgBtn").addEventListener("click", saveImage);
   $("waBtn").addEventListener("click", shareWhatsApp);
 
+  applyBizUI();
   calc();
 })();
 </script>
