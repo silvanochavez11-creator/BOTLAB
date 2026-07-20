@@ -348,11 +348,14 @@
   <!-- ============ MIS GUIONES ============ -->
   <section class="card">
     <h2>📝 Mis guiones</h2>
-    <p class="hint">Escribe tus guiones aquí mismo. Cada día que trabajes en uno queda registrado automáticamente, y todo se guarda solo mientras escribes.</p>
+    <p class="hint">Escribe tus guiones aquí mismo o importa uno desde un archivo. Cada día que trabajes en uno queda registrado automáticamente, y todo se guarda solo mientras escribes.</p>
     <div class="idea-form">
       <input type="text" id="inputGuion" placeholder="Título del nuevo guion. Ej: Bot de citas para barberías" maxlength="140" />
       <button class="btn-add" id="btnAddGuion">+ Nuevo guion</button>
+      <button class="btn" id="btnImportar" title="Importar guion desde archivo MD, TXT o PDF">📂 Importar MD / PDF</button>
+      <input type="file" id="archivoGuion" accept=".md,.markdown,.txt,.pdf" multiple style="display:none;" />
     </div>
+    <div class="estado-transcripcion" id="estadoImportar" style="margin:-4px 0 10px;"></div>
     <div id="listaGuiones"></div>
   </section>
 
@@ -815,6 +818,94 @@ function agregarGuion(){
   inp.value = "";
 }
 
+/* ================= Importar guiones desde archivos (MD / TXT / PDF) ================= */
+const PDFJS_URL = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
+const PDFJS_WORKER_URL = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+
+function mostrarEstadoImportar(clase, html){
+  const el = document.getElementById("estadoImportar");
+  el.className = "estado-transcripcion " + clase;
+  el.innerHTML = html;
+}
+
+function cargarPdfJs(){
+  if(window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
+  return new Promise((resolver, rechazar) => {
+    const s = document.createElement("script");
+    s.src = PDFJS_URL;
+    s.onload = () => {
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER_URL;
+      resolver(window.pdfjsLib);
+    };
+    s.onerror = () => rechazar(new Error("No se pudo cargar el lector de PDF. ¿Tienes internet?"));
+    document.head.appendChild(s);
+  });
+}
+
+async function extraerTextoPdf(archivo){
+  const lib = await cargarPdfJs();
+  const buf = await archivo.arrayBuffer();
+  const pdf = await lib.getDocument({ data: buf }).promise;
+  const partes = [];
+  for(let i = 1; i <= pdf.numPages; i++){
+    const pagina = await pdf.getPage(i);
+    const tc = await pagina.getTextContent();
+    let linea = "", texto = "";
+    let ultimaY = null;
+    tc.items.forEach(it => {
+      const y = it.transform ? Math.round(it.transform[5]) : null;
+      if(ultimaY !== null && y !== null && Math.abs(y - ultimaY) > 4){
+        texto += linea.trimEnd() + "\n";
+        linea = "";
+      }
+      linea += it.str + (it.hasEOL ? "\n" : " ");
+      if(y !== null) ultimaY = y;
+    });
+    texto += linea.trimEnd();
+    partes.push(texto.trim());
+  }
+  return partes.join("\n\n").trim();
+}
+
+async function importarArchivos(archivos){
+  let creados = 0;
+  for(const archivo of archivos){
+    const nombre = archivo.name;
+    const ext = (nombre.split(".").pop() || "").toLowerCase();
+    mostrarEstadoImportar("progreso", '<span class="spinner"></span>Leyendo "' + escapar(nombre) + '"...');
+    try{
+      let texto = "";
+      if(ext === "pdf"){
+        texto = await extraerTextoPdf(archivo);
+      }else{
+        texto = (await archivo.text()).trim();
+      }
+      if(!texto){
+        mostrarEstadoImportar("error", '⚠ "' + escapar(nombre) + '" no tiene texto legible' +
+          (ext === "pdf" ? " (si es un PDF escaneado como imagen, no se puede extraer el texto)" : "") + ".");
+        continue;
+      }
+      crearGuion(nombre.replace(/\.[^.]+$/, ""), texto);
+      creados++;
+    }catch(e){
+      mostrarEstadoImportar("error", '⚠ No se pudo leer "' + escapar(nombre) + '": ' + escapar(e.message));
+    }
+  }
+  if(creados > 0){
+    mostrarEstadoImportar("ok", "✅ " + (creados === 1 ? "1 guion importado" : creados + " guiones importados") +
+      ". Ya puedes editarlo aquí abajo.");
+  }
+}
+
+function initImportar(){
+  const inputArchivo = document.getElementById("archivoGuion");
+  document.getElementById("btnImportar").addEventListener("click", () => inputArchivo.click());
+  inputArchivo.addEventListener("change", () => {
+    if(inputArchivo.files.length) importarArchivos(Array.from(inputArchivo.files));
+    inputArchivo.value = "";
+  });
+}
+
 /* ================= Análisis de estilo ================= */
 const STOPWORDS = new Set(("de la que el en y a los se del las un por con no una su para es al lo como más pero sus le " +
   "ya o fue este ha sí porque esta son entre está cuando muy sin sobre ser tiene también me hasta hay donde han quien " +
@@ -1079,6 +1170,7 @@ renderIdeas();
 renderGuiones();
 renderReferencias();
 initTranscripcion();
+initImportar();
 </script>
 </body>
 </html>
