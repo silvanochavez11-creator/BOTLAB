@@ -170,6 +170,95 @@
   .idea .borrar:hover{color:var(--red);}
   .sin-ideas{color:var(--muted);font-size:13px;font-style:italic;}
 
+  /* ---------- Guiones ---------- */
+  .guion{
+    background:#0A0F1A;border:1px solid var(--line);border-radius:14px;
+    margin-bottom:10px;overflow:hidden;
+  }
+  .guion-head{
+    display:flex;align-items:center;gap:10px;padding:12px 15px;cursor:pointer;
+    flex-wrap:wrap;user-select:none;
+  }
+  .guion-head:hover{background:rgba(124,111,255,.05);}
+  .guion-head .flecha{color:var(--muted);font-size:12px;transition:transform .2s;}
+  .guion.abierto .guion-head .flecha{transform:rotate(90deg);}
+  .guion-head .titulo-g{flex:1;min-width:140px;font-weight:bold;font-size:14.5px;}
+  .guion-head .fecha-g{font-size:12px;color:var(--muted);}
+  .guion-head .borrar{background:none;border:none;color:var(--muted);cursor:pointer;font-size:15px;padding:2px 4px;}
+  .guion-head .borrar:hover{color:var(--red);}
+  .guion-cuerpo{display:none;padding:0 15px 15px;}
+  .guion.abierto .guion-cuerpo{display:block;}
+  .guion-cuerpo input.titulo-edit{
+    width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:10px;
+    color:var(--txt);font-size:15px;font-weight:bold;padding:10px 12px;outline:none;
+    font-family:inherit;margin-bottom:10px;
+  }
+  .guion-cuerpo input.titulo-edit:focus{border-color:var(--gold);}
+  .guion-texto{
+    width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:10px;
+    color:var(--txt);font-size:14px;line-height:1.55;padding:12px 14px;outline:none;
+    font-family:inherit;resize:vertical;min-height:220px;
+  }
+  .guion-texto:focus{border-color:var(--gold);}
+  .guion-meta{display:flex;gap:14px;flex-wrap:wrap;margin-top:9px;font-size:12px;color:var(--muted);align-items:center;}
+  .guion-meta .chip{
+    background:rgba(34,211,238,.1);color:var(--cyan);border:1px solid rgba(34,211,238,.3);
+    border-radius:999px;padding:2px 9px;font-size:11px;
+  }
+  .guion-meta .stats-g{margin-left:auto;}
+  .sin-guiones{color:var(--muted);font-size:13px;font-style:italic;}
+
+  /* ---------- Análisis de estilo ---------- */
+  .como-box{
+    background:rgba(34,211,238,.06);border:1px solid rgba(34,211,238,.25);border-radius:12px;
+    padding:12px 15px;font-size:13px;color:var(--txt);margin-bottom:14px;line-height:1.55;
+  }
+  .como-box b{color:var(--cyan);}
+  .analisis-form input[type=text]{
+    width:100%;background:#0A0F1A;border:1px solid var(--line);border-radius:12px;
+    color:var(--txt);font-size:14px;padding:11px 13px;outline:none;font-family:inherit;margin-bottom:8px;
+  }
+  .analisis-form input[type=text]:focus{border-color:var(--gold);}
+  .analisis-form textarea{
+    width:100%;background:#0A0F1A;border:1px solid var(--line);border-radius:12px;
+    color:var(--txt);font-size:13.5px;line-height:1.5;padding:12px 14px;outline:none;
+    font-family:inherit;resize:vertical;min-height:130px;margin-bottom:10px;
+  }
+  .analisis-form textarea:focus{border-color:var(--gold);}
+  .resultado-analisis{
+    background:#0A0F1A;border:1px solid var(--line);border-radius:14px;padding:16px;margin-top:14px;
+  }
+  .resultado-analisis h3{margin:0 0 12px;font-size:15px;color:var(--gold);}
+  .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:14px;}
+  .stat-box{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;text-align:center;}
+  .stat-box .num{font-size:20px;font-weight:bold;color:var(--cyan);}
+  .stat-box .lbl{font-size:11px;color:var(--muted);margin-top:2px;}
+  .analisis-seccion{margin-bottom:12px;}
+  .analisis-seccion .etq{font-size:12px;font-weight:bold;color:var(--lila);text-transform:uppercase;
+    letter-spacing:1px;margin-bottom:5px;}
+  .analisis-seccion .contenido-a{
+    background:var(--panel2);border-left:3px solid var(--purple);border-radius:0 8px 8px 0;
+    padding:9px 12px;font-size:13px;line-height:1.5;color:var(--txt);
+  }
+  .palabras-top{display:flex;gap:6px;flex-wrap:wrap;}
+  .palabra-pill{background:rgba(255,209,102,.1);color:var(--gold);border:1px solid rgba(255,209,102,.3);
+    border-radius:999px;padding:3px 11px;font-size:12px;}
+  .palabra-pill small{color:var(--muted);}
+  .referencia{
+    display:flex;align-items:center;gap:10px;background:#0A0F1A;border:1px solid var(--line);
+    border-radius:12px;padding:10px 13px;margin-bottom:8px;flex-wrap:wrap;
+  }
+  .referencia .tit-ref{flex:1;min-width:140px;font-size:13.5px;font-weight:bold;}
+  .referencia .fecha-ref{font-size:11px;color:var(--muted);}
+  .referencia button{background:var(--panel2);border:1px solid var(--line);border-radius:8px;color:var(--cyan);
+    font-size:12px;padding:6px 10px;cursor:pointer;font-family:inherit;}
+  .referencia button:hover{border-color:var(--cyan);}
+  .referencia .borrar{color:var(--muted);border:none;background:none;font-size:15px;}
+  .referencia .borrar:hover{color:var(--red);}
+  .idea .a-guion{background:var(--panel2);border:1px solid var(--line);border-radius:8px;color:var(--gold);
+    font-size:12px;padding:6px 10px;cursor:pointer;font-family:inherit;white-space:nowrap;}
+  .idea .a-guion:hover{border-color:var(--gold);}
+
   footer{text-align:center;color:var(--muted);font-size:12px;margin-top:30px;}
   footer b{color:var(--lila);}
 </style>
@@ -218,6 +307,38 @@
     <div id="listaIdeas"></div>
   </section>
 
+  <!-- ============ MIS GUIONES ============ -->
+  <section class="card">
+    <h2>📝 Mis guiones</h2>
+    <p class="hint">Escribe tus guiones aquí mismo. Cada día que trabajes en uno queda registrado automáticamente, y todo se guarda solo mientras escribes.</p>
+    <div class="idea-form">
+      <input type="text" id="inputGuion" placeholder="Título del nuevo guion. Ej: Bot de citas para barberías" maxlength="140" />
+      <button class="btn-add" id="btnAddGuion">+ Nuevo guion</button>
+    </div>
+    <div id="listaGuiones"></div>
+  </section>
+
+  <!-- ============ ANÁLISIS DE ESTILO ============ -->
+  <section class="card">
+    <h2>🎯 Análisis de estilo (transcripciones)</h2>
+    <p class="hint">Pega la transcripción de un video que te guste y el programa analiza su estilo: gancho, llamados a la acción, ritmo y palabras clave. Luego úsalo como plantilla para tus guiones.</p>
+    <div class="como-box">
+      <b>¿Cómo consigo la transcripción?</b><br/>
+      • <b>YouTube:</b> abre el video → toca la descripción → botón <b>"Mostrar transcripción"</b> → selecciona y copia el texto.<br/>
+      • <b>TikTok / Reels:</b> muchos videos muestran los subtítulos con el botón CC; también puedes dictar lo que dice el video con el micrófono de tu teclado en el celular.
+    </div>
+    <div class="analisis-form">
+      <input type="text" id="refTitulo" placeholder="Título o enlace del video de referencia" maxlength="200" />
+      <textarea id="refTexto" placeholder="Pega aquí la transcripción del video..."></textarea>
+      <button class="btn-add" id="btnAnalizar">🔎 Analizar estilo</button>
+    </div>
+    <div id="resultadoAnalisis"></div>
+    <div style="margin-top:18px;">
+      <div class="analisis-seccion"><div class="etq">Referencias guardadas</div></div>
+      <div id="listaReferencias"></div>
+    </div>
+  </section>
+
   <footer>Hecho con 🤖 para <b>BotLab</b> · Tu progreso se guarda automáticamente en este navegador.</footer>
 </div>
 
@@ -252,7 +373,7 @@ const CLAVE = "botlab_organizador_contenido_v1";
 function estadoInicial(){
   const config = {};
   FASES.forEach(f => config[f.id] = f.diaDefault);
-  return { config, semanas:{}, ideas:[] };
+  return { config, semanas:{}, ideas:[], guiones:[], referencias:[] };
 }
 
 let estado = cargar();
@@ -267,6 +388,8 @@ function cargar(){
       config: Object.assign(base.config, data.config || {}),
       semanas: data.semanas || {},
       ideas: Array.isArray(data.ideas) ? data.ideas : [],
+      guiones: Array.isArray(data.guiones) ? data.guiones : [],
+      referencias: Array.isArray(data.referencias) ? data.referencias : [],
     };
   }catch(e){ return estadoInicial(); }
 }
@@ -478,12 +601,18 @@ function renderIdeas(){
     div.innerHTML = `
       <span class="estado-pill" style="background:${est.color}22;color:${est.color};border:1px solid ${est.color}55;">${est.nombre}</span>
       <span class="titulo-idea">${escapar(idea.titulo)}</span>
+      <button class="a-guion" title="Crear guion con este título">📝 Guion</button>
       <select>${opciones}</select>
       <button class="borrar" title="Eliminar idea">🗑</button>`;
     div.querySelector("select").addEventListener("change", e => {
       idea.estado = e.target.value;
       guardar();
       renderIdeas();
+    });
+    div.querySelector(".a-guion").addEventListener("click", () => {
+      crearGuion(idea.titulo, "");
+      if(idea.estado === "idea"){ idea.estado = "guion"; guardar(); renderIdeas(); }
+      document.getElementById("listaGuiones").scrollIntoView({behavior:"smooth"});
     });
     div.querySelector(".borrar").addEventListener("click", () => {
       if(confirm("¿Eliminar esta idea?")){
@@ -506,6 +635,290 @@ function agregarIdea(){
   renderIdeas();
 }
 
+/* ================= Guiones ================= */
+let guionAbierto = null;
+
+function hoyISO(){
+  const d = new Date();
+  return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+}
+
+function fmtISO(iso){
+  const [y,m,d] = iso.split("-").map(Number);
+  return d + " " + ["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"][m-1];
+}
+
+function registrarDiaTrabajo(guion){
+  const hoy = hoyISO();
+  guion.dias = guion.dias || [];
+  if(!guion.dias.includes(hoy)) guion.dias.push(hoy);
+}
+
+function crearGuion(titulo, contenido){
+  const g = { id: Date.now() + "-" + Math.floor(Math.random()*9999),
+              titulo: titulo || "Guion sin título",
+              contenido: contenido || "",
+              dias: [hoyISO()] };
+  estado.guiones.unshift(g);
+  guionAbierto = g.id;
+  guardar();
+  renderGuiones();
+  return g;
+}
+
+function statsTexto(texto){
+  const palabras = (texto.trim().match(/\S+/g) || []).length;
+  const minutos = palabras / 150; // ritmo hablado promedio
+  let dur;
+  if(palabras === 0) dur = "0 min";
+  else if(minutos < 1) dur = "~" + Math.max(5, Math.round(minutos*60/5)*5) + " seg";
+  else dur = "~" + (Math.round(minutos*10)/10).toString().replace(".",",") + " min";
+  return { palabras, dur };
+}
+
+function renderGuiones(){
+  const cont = document.getElementById("listaGuiones");
+  cont.innerHTML = "";
+  if(estado.guiones.length === 0){
+    cont.innerHTML = '<div class="sin-guiones">Aún no hay guiones. Crea el primero arriba, o desde una idea con el botón 📝. </div>';
+    return;
+  }
+  estado.guiones.forEach((g, i) => {
+    g.dias = g.dias || [];
+    const abierto = guionAbierto === g.id;
+    const st = statsTexto(g.contenido || "");
+    const div = document.createElement("div");
+    div.className = "guion" + (abierto ? " abierto" : "");
+
+    const head = document.createElement("div");
+    head.className = "guion-head";
+    head.innerHTML = `
+      <span class="flecha">▶</span>
+      <span class="titulo-g">${escapar(g.titulo)}</span>
+      <span class="fecha-g">${g.dias.length ? "Creado: " + fmtISO(g.dias[0]) : ""}</span>
+      <button class="borrar" title="Eliminar guion">🗑</button>`;
+    head.addEventListener("click", e => {
+      if(e.target.closest(".borrar")) return;
+      guionAbierto = abierto ? null : g.id;
+      renderGuiones();
+    });
+    head.querySelector(".borrar").addEventListener("click", () => {
+      if(confirm("¿Eliminar el guion \"" + g.titulo + "\"? Esto no se puede deshacer.")){
+        estado.guiones.splice(i,1);
+        if(guionAbierto === g.id) guionAbierto = null;
+        guardar();
+        renderGuiones();
+      }
+    });
+    div.appendChild(head);
+
+    const cuerpo = document.createElement("div");
+    cuerpo.className = "guion-cuerpo";
+    if(abierto){
+      const inpTitulo = document.createElement("input");
+      inpTitulo.type = "text"; inpTitulo.className = "titulo-edit";
+      inpTitulo.maxLength = 140; inpTitulo.value = g.titulo;
+      inpTitulo.addEventListener("input", () => {
+        g.titulo = inpTitulo.value;
+        head.querySelector(".titulo-g").textContent = g.titulo || "Guion sin título";
+        registrarDiaTrabajo(g);
+        guardar();
+      });
+      cuerpo.appendChild(inpTitulo);
+
+      const ta = document.createElement("textarea");
+      ta.className = "guion-texto";
+      ta.placeholder = "Escribe tu guion aquí...\n\n🎣 GANCHO (primeros 3-5 segundos):\n\n📖 DESARROLLO:\n\n📣 LLAMADO A LA ACCIÓN:";
+      ta.value = g.contenido || "";
+      ta.addEventListener("input", () => {
+        g.contenido = ta.value;
+        registrarDiaTrabajo(g);
+        guardar();
+        const s = statsTexto(g.contenido);
+        meta.querySelector(".stats-g").textContent = s.palabras + " palabras · " + s.dur + " hablado";
+      });
+      cuerpo.appendChild(ta);
+
+      const meta = document.createElement("div");
+      meta.className = "guion-meta";
+      const chips = g.dias.map(d => `<span class="chip">${fmtISO(d)}</span>`).join(" ");
+      meta.innerHTML = `<span>Días trabajados:</span> ${chips || "—"}
+        <span class="stats-g">${st.palabras} palabras · ${st.dur} hablado</span>`;
+      cuerpo.appendChild(meta);
+    }
+    div.appendChild(cuerpo);
+    cont.appendChild(div);
+  });
+}
+
+function agregarGuion(){
+  const inp = document.getElementById("inputGuion");
+  crearGuion(inp.value.trim(), "");
+  inp.value = "";
+}
+
+/* ================= Análisis de estilo ================= */
+const STOPWORDS = new Set(("de la que el en y a los se del las un por con no una su para es al lo como más pero sus le " +
+  "ya o fue este ha sí porque esta son entre está cuando muy sin sobre ser tiene también me hasta hay donde han quien " +
+  "están estado desde todo nos durante estados todos uno les ni contra otros fueron ese eso había ante ellos e esto mí " +
+  "antes algunos qué unos yo otro otras otra él tanto esa estos mucho quienes nada muchos cual sea poco ella estar " +
+  "haber estas estaba estamos algunas algo nosotros tu te ti si eres va voy van vas les os mi mis tus era eran solo " +
+  "así entonces pues bueno bien aquí ahí allá cada vez veces ver hacer hace tenemos tienen puede pueden podemos quiero " +
+  "quieres decir dice digo tener él ustedes usted vamos estás dónde cómo cuál cuándo").split(/\s+/));
+
+const CTA_PALABRAS = ["suscríbete","suscribete","sígueme","sigueme","comenta","comparte","dale like","dame like",
+  "like","guarda este video","guárdalo","link en","enlace en","escríbeme","escribeme","mándame","mandame",
+  "agenda","descarga","regístrate","registrate","campanita","comparte este","etiqueta","mensaje directo","dm"];
+
+function analizarTexto(texto){
+  const limpio = texto.trim().replace(/\s+/g," ");
+  const st = statsTexto(limpio);
+  const oraciones = limpio.split(/[.!?¡¿\n]+/).map(s => s.trim()).filter(s => s.length > 2);
+  const preguntas = (limpio.match(/\?/g) || []).length;
+
+  const palabrasArr = limpio.toLowerCase().replace(/[^\wáéíóúüñ\s]/gi," ").split(/\s+/).filter(Boolean);
+  const frec = {};
+  palabrasArr.forEach(p => { if(p.length > 3 && !STOPWORDS.has(p)) frec[p] = (frec[p]||0)+1; });
+  const top = Object.entries(frec).sort((a,b) => b[1]-a[1]).slice(0,8).filter(e => e[1] > 1);
+
+  const gancho = palabrasArr.length ? limpio.split(/\s+/).slice(0,28).join(" ") + (palabrasArr.length > 28 ? "…" : "") : "";
+
+  const bajo = limpio.toLowerCase();
+  const ctas = [];
+  oraciones.forEach(o => {
+    const ob = o.toLowerCase();
+    if(CTA_PALABRAS.some(c => ob.includes(c)) && ctas.length < 4) ctas.push(o);
+  });
+
+  const promedioOracion = oraciones.length ? Math.round(palabrasArr.length / oraciones.length) : 0;
+  const ritmo = promedioOracion === 0 ? "—" :
+    promedioOracion <= 9 ? "Rápido y directo (frases cortas)" :
+    promedioOracion <= 16 ? "Medio y conversacional" : "Pausado y explicativo (frases largas)";
+
+  return { palabras: st.palabras, dur: st.dur, oraciones: oraciones.length, preguntas,
+           promedioOracion, ritmo, gancho, ctas, top };
+}
+
+let ultimoAnalisis = null;
+
+function renderResultadoAnalisis(a, titulo){
+  const cont = document.getElementById("resultadoAnalisis");
+  if(!a){ cont.innerHTML = ""; return; }
+  const topHtml = a.top.length
+    ? a.top.map(([p,n]) => `<span class="palabra-pill">${escapar(p)} <small>×${n}</small></span>`).join("")
+    : '<span style="color:var(--muted);font-size:12px;">Sin repeticiones destacadas</span>';
+  const ctasHtml = a.ctas.length
+    ? a.ctas.map(c => `<div class="contenido-a">📣 ${escapar(c)}</div>`).join('<div style="height:6px;"></div>')
+    : '<div class="contenido-a" style="color:var(--muted);">No se detectaron llamados a la acción claros.</div>';
+  cont.innerHTML = `
+    <div class="resultado-analisis">
+      <h3>📊 Análisis: ${escapar(titulo || "video de referencia")}</h3>
+      <div class="stat-grid">
+        <div class="stat-box"><div class="num">${a.palabras}</div><div class="lbl">palabras</div></div>
+        <div class="stat-box"><div class="num">${a.dur}</div><div class="lbl">duración hablada</div></div>
+        <div class="stat-box"><div class="num">${a.preguntas}</div><div class="lbl">preguntas al público</div></div>
+        <div class="stat-box"><div class="num">${a.promedioOracion}</div><div class="lbl">palabras por frase</div></div>
+      </div>
+      <div class="analisis-seccion">
+        <div class="etq">🎣 Gancho (cómo empieza)</div>
+        <div class="contenido-a">${escapar(a.gancho) || "—"}</div>
+      </div>
+      <div class="analisis-seccion">
+        <div class="etq">🗣 Ritmo</div>
+        <div class="contenido-a">${a.ritmo}</div>
+      </div>
+      <div class="analisis-seccion">
+        <div class="etq">📣 Llamados a la acción detectados</div>
+        ${ctasHtml}
+      </div>
+      <div class="analisis-seccion">
+        <div class="etq">🔑 Palabras que más repite</div>
+        <div class="palabras-top">${topHtml}</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;">
+        <button class="btn-add" id="btnGuardarRef">💾 Guardar como referencia</button>
+        <button class="btn" id="btnPlantilla">📝 Crear guion con este estilo</button>
+      </div>
+    </div>`;
+  document.getElementById("btnGuardarRef").addEventListener("click", guardarReferencia);
+  document.getElementById("btnPlantilla").addEventListener("click", () => crearGuionDesdeAnalisis(a, titulo));
+}
+
+function plantillaDesdeAnalisis(a, titulo){
+  return "🎯 ESTILO DE REFERENCIA: " + (titulo || "video analizado") + "\n" +
+    "· Duración objetivo: " + a.dur + " (" + a.palabras + " palabras aprox.)\n" +
+    "· Ritmo: " + a.ritmo.toLowerCase() + "\n" +
+    "· Preguntas al público: " + a.preguntas + "\n" +
+    (a.top.length ? "· Palabras clave: " + a.top.map(t=>t[0]).join(", ") + "\n" : "") +
+    "\n🎣 GANCHO (primeros 3-5 segundos)\n" +
+    "Referencia: \"" + a.gancho + "\"\nMi versión:\n\n" +
+    "\n📖 DESARROLLO\n(Explica el problema del negocio y cómo lo resolverías con un bot)\n\n" +
+    "\n📣 LLAMADO A LA ACCIÓN\n" +
+    (a.ctas.length ? "Referencia: \"" + a.ctas[0] + "\"\nMi versión:\n" : "Mi versión:\n");
+}
+
+function crearGuionDesdeAnalisis(a, titulo){
+  crearGuion("Guion estilo: " + (titulo || "referencia"), plantillaDesdeAnalisis(a, titulo));
+  document.getElementById("listaGuiones").scrollIntoView({behavior:"smooth"});
+}
+
+function guardarReferencia(){
+  if(!ultimoAnalisis) return;
+  estado.referencias.unshift({
+    id: Date.now() + "-" + Math.floor(Math.random()*9999),
+    titulo: ultimoAnalisis.titulo || "Referencia sin título",
+    analisis: ultimoAnalisis.analisis,
+    fecha: hoyISO(),
+  });
+  guardar();
+  renderReferencias();
+}
+
+function renderReferencias(){
+  const cont = document.getElementById("listaReferencias");
+  cont.innerHTML = "";
+  if(estado.referencias.length === 0){
+    cont.innerHTML = '<div class="sin-ideas">Todavía no has guardado referencias.</div>';
+    return;
+  }
+  estado.referencias.forEach((r, i) => {
+    const div = document.createElement("div");
+    div.className = "referencia";
+    div.innerHTML = `
+      <span class="tit-ref">${escapar(r.titulo)}</span>
+      <span class="fecha-ref">${fmtISO(r.fecha)}</span>
+      <button class="ver">👁 Ver análisis</button>
+      <button class="usar">📝 Usar estilo</button>
+      <button class="borrar" title="Eliminar">🗑</button>`;
+    div.querySelector(".ver").addEventListener("click", () => {
+      ultimoAnalisis = { titulo: r.titulo, analisis: r.analisis };
+      renderResultadoAnalisis(r.analisis, r.titulo);
+      document.getElementById("resultadoAnalisis").scrollIntoView({behavior:"smooth"});
+    });
+    div.querySelector(".usar").addEventListener("click", () => crearGuionDesdeAnalisis(r.analisis, r.titulo));
+    div.querySelector(".borrar").addEventListener("click", () => {
+      if(confirm("¿Eliminar esta referencia?")){
+        estado.referencias.splice(i,1);
+        guardar();
+        renderReferencias();
+      }
+    });
+    cont.appendChild(div);
+  });
+}
+
+function analizar(){
+  const titulo = document.getElementById("refTitulo").value.trim();
+  const texto = document.getElementById("refTexto").value;
+  if(!texto.trim()){
+    alert("Pega primero la transcripción del video en el cuadro de texto.");
+    return;
+  }
+  const a = analizarTexto(texto);
+  ultimoAnalisis = { titulo, analisis: a };
+  renderResultadoAnalisis(a, titulo);
+}
+
 /* ================= Utilidades ================= */
 function escapar(s){
   return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -517,11 +930,16 @@ document.getElementById("btnNext").addEventListener("click", () => { offsetSeman
 document.getElementById("btnHoy").addEventListener("click", () => { offsetSemana = 0; renderSemana(); });
 document.getElementById("btnAddIdea").addEventListener("click", agregarIdea);
 document.getElementById("inputIdea").addEventListener("keydown", e => { if(e.key === "Enter") agregarIdea(); });
+document.getElementById("btnAddGuion").addEventListener("click", agregarGuion);
+document.getElementById("inputGuion").addEventListener("keydown", e => { if(e.key === "Enter") agregarGuion(); });
+document.getElementById("btnAnalizar").addEventListener("click", analizar);
 
 /* ================= Inicio ================= */
 renderConfig();
 renderSemana();
 renderIdeas();
+renderGuiones();
+renderReferencias();
 </script>
 </body>
 </html>
