@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>🎬 Organizador de Contenido — BotLab</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎬</text></svg>" />
+<style>
+  :root{
+    --bg:#080C14;
+    --panel:#0E1320;
+    --panel2:#111827;
+    --line:#1E2D42;
+    --gold:#FFD166;
+    --green:#00E5A0;
+    --red:#FF4D6A;
+    --purple:#7C6FFF;
+    --lila:#C4BBFF;
+    --cyan:#22D3EE;
+    --orange:#FF8C42;
+    --txt:#F0F4FF;
+    --muted:#7A8BA8;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(1200px 600px at 15% -10%, rgba(124,111,255,.18), transparent 60%),
+      radial-gradient(900px 500px at 110% 0%, rgba(0,229,160,.12), transparent 55%),
+      var(--bg);
+    color:var(--txt);
+    font-family:'Trebuchet MS','Segoe UI',system-ui,-apple-system,sans-serif;
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1120px;margin:0 auto;padding:24px 16px 64px;}
+
+  /* ---------- Header ---------- */
+  header{text-align:center;margin-bottom:26px;}
+  .badge{
+    display:inline-block;font-size:12px;letter-spacing:2px;text-transform:uppercase;
+    color:var(--lila);border:1px solid rgba(124,111,255,.4);
+    padding:5px 14px;border-radius:999px;background:rgba(124,111,255,.08);
+    margin-bottom:14px;
+  }
+  h1{
+    font-size:clamp(26px,6vw,44px);margin:0;line-height:1.05;
+    background:linear-gradient(90deg,var(--gold),var(--orange) 55%,var(--lila));
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    text-shadow:0 0 40px rgba(255,209,102,.18);
+  }
+  .sub{color:var(--muted);margin-top:10px;font-size:15px;}
+
+  .card{
+    background:linear-gradient(180deg,var(--panel),var(--panel2));
+    border:1px solid var(--line);border-radius:20px;padding:22px;
+    box-shadow:0 20px 50px -25px rgba(0,0,0,.8), inset 0 1px 0 rgba(255,255,255,.03);
+    margin-bottom:20px;
+  }
+  .card h2{margin:0 0 4px;font-size:18px;display:flex;align-items:center;gap:9px;}
+  .card .hint{color:var(--muted);font-size:13px;margin:0 0 18px;}
+
+  /* ---------- Config de fases ---------- */
+  .fases-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;}
+  .fase-cfg{
+    background:#0A0F1A;border:1px solid var(--line);border-radius:14px;padding:14px;
+    border-top:3px solid var(--fase-color,var(--purple));
+  }
+  .fase-cfg .nombre{font-weight:bold;font-size:14px;margin-bottom:8px;display:flex;gap:7px;align-items:center;}
+  select{
+    width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:10px;
+    color:var(--txt);font-size:14px;font-weight:bold;padding:9px 10px;outline:none;cursor:pointer;
+    font-family:inherit;
+  }
+  select:focus{border-color:var(--gold);}
+
+  /* ---------- Navegación de semana ---------- */
+  .semana-nav{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;flex-wrap:wrap;}
+  .semana-nav .titulo{font-size:16px;font-weight:bold;color:var(--gold);}
+  .semana-nav .titulo small{display:block;color:var(--muted);font-weight:normal;font-size:12px;margin-top:2px;}
+  .btn{
+    background:var(--panel2);border:1px solid var(--line);border-radius:10px;color:var(--txt);
+    font-size:14px;font-weight:bold;padding:9px 16px;cursor:pointer;font-family:inherit;
+    transition:border .15s, transform .1s;
+  }
+  .btn:hover{border-color:var(--purple);}
+  .btn:active{transform:scale(.97);}
+  .btn.hoy{color:var(--cyan);}
+
+  /* ---------- Progreso ---------- */
+  .progreso-row{display:flex;align-items:center;gap:14px;margin-bottom:18px;}
+  .progreso-row .pct{font-size:26px;font-weight:bold;color:var(--gold);min-width:64px;text-align:right;
+    text-shadow:0 0 24px rgba(255,209,102,.3);}
+  .meter{flex:1;height:16px;border-radius:999px;background:#0A0F1A;border:1px solid var(--line);overflow:hidden;}
+  .meter .fill{height:100%;width:0;border-radius:999px;
+    background:linear-gradient(90deg,var(--green),var(--cyan) 60%,var(--gold));
+    transition:width .5s cubic-bezier(.2,.8,.2,1);box-shadow:0 0 16px rgba(34,211,238,.5);}
+
+  /* ---------- Días ---------- */
+  .dias{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;}
+  .dia{
+    background:#0A0F1A;border:1px solid var(--line);border-radius:16px;padding:16px;
+    display:flex;flex-direction:column;gap:10px;
+  }
+  .dia.es-hoy{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold), 0 0 24px rgba(255,209,102,.15);}
+  .dia-head{display:flex;justify-content:space-between;align-items:center;}
+  .dia-head .nombre{font-weight:bold;font-size:15px;text-transform:capitalize;}
+  .dia-head .fecha{font-size:12px;color:var(--muted);}
+  .tag-hoy{font-size:10px;letter-spacing:1px;color:#080C14;background:var(--gold);
+    border-radius:999px;padding:2px 8px;font-weight:bold;text-transform:uppercase;}
+  .fase-bloque{border-left:3px solid var(--fase-color,var(--purple));padding-left:10px;}
+  .fase-bloque .fase-titulo{font-size:13px;font-weight:bold;color:var(--fase-color,var(--lila));margin-bottom:6px;
+    display:flex;align-items:center;gap:6px;}
+  .dia-libre{color:var(--muted);font-size:13px;font-style:italic;padding:6px 0;}
+
+  .tarea{display:flex;align-items:flex-start;gap:8px;padding:4px 0;font-size:13.5px;cursor:pointer;user-select:none;}
+  .tarea input[type=checkbox]{
+    appearance:none;-webkit-appearance:none;width:17px;height:17px;min-width:17px;margin-top:1px;
+    border:1.5px solid var(--line);border-radius:5px;background:var(--panel2);cursor:pointer;
+    display:inline-flex;align-items:center;justify-content:center;transition:background .15s,border .15s;
+  }
+  .tarea input[type=checkbox]:checked{background:var(--green);border-color:var(--green);}
+  .tarea input[type=checkbox]:checked::after{content:"✓";color:#04110C;font-size:12px;font-weight:bold;}
+  .tarea.hecha .txt{text-decoration:line-through;color:var(--muted);}
+  .tarea .del{margin-left:auto;background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;
+    padding:0 2px;visibility:hidden;}
+  .tarea:hover .del{visibility:visible;}
+  .tarea .del:hover{color:var(--red);}
+
+  .add-tarea{display:flex;gap:6px;margin-top:4px;}
+  .add-tarea input{
+    flex:1;background:var(--panel2);border:1px dashed var(--line);border-radius:8px;
+    color:var(--txt);font-size:12.5px;padding:6px 9px;outline:none;font-family:inherit;
+  }
+  .add-tarea input:focus{border-color:var(--cyan);border-style:solid;}
+  .add-tarea button{
+    background:var(--panel2);border:1px solid var(--line);border-radius:8px;color:var(--cyan);
+    font-size:14px;font-weight:bold;padding:0 11px;cursor:pointer;
+  }
+  .add-tarea button:hover{border-color:var(--cyan);}
+
+  .notas{
+    width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:10px;
+    color:var(--txt);font-size:12.5px;padding:8px 10px;outline:none;font-family:inherit;
+    resize:vertical;min-height:34px;margin-top:auto;
+  }
+  .notas:focus{border-color:var(--gold);}
+  .notas::placeholder{color:var(--muted);opacity:.7;}
+
+  /* ---------- Banco de ideas ---------- */
+  .idea-form{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+  .idea-form input{
+    flex:1;min-width:200px;background:#0A0F1A;border:1px solid var(--line);border-radius:12px;
+    color:var(--txt);font-size:14px;padding:11px 13px;outline:none;font-family:inherit;
+  }
+  .idea-form input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(255,209,102,.12);}
+  .btn-add{
+    background:linear-gradient(90deg,var(--gold),var(--orange));border:none;border-radius:12px;
+    color:#080C14;font-size:14px;font-weight:bold;padding:11px 20px;cursor:pointer;font-family:inherit;
+  }
+  .btn-add:active{transform:scale(.97);}
+  .idea{
+    display:flex;align-items:center;gap:10px;background:#0A0F1A;border:1px solid var(--line);
+    border-radius:12px;padding:10px 13px;margin-bottom:8px;flex-wrap:wrap;
+  }
+  .idea .titulo-idea{flex:1;min-width:150px;font-size:14px;}
+  .idea select{width:auto;font-size:12px;padding:6px 8px;}
+  .estado-pill{font-size:11px;font-weight:bold;border-radius:999px;padding:3px 10px;white-space:nowrap;}
+  .idea .borrar{background:none;border:none;color:var(--muted);cursor:pointer;font-size:15px;padding:2px 4px;}
+  .idea .borrar:hover{color:var(--red);}
+  .sin-ideas{color:var(--muted);font-size:13px;font-style:italic;}
+
+  /* ---------- Guiones ---------- */
+  .guion{
+    background:#0A0F1A;border:1px solid var(--line);border-radius:14px;
+    margin-bottom:10px;overflow:hidden;
+  }
+  .guion-head{
+    display:flex;align-items:center;gap:10px;padding:12px 15px;cursor:pointer;
+    flex-wrap:wrap;user-select:none;
+  }
+  .guion-head:hover{background:rgba(124,111,255,.05);}
+  .guion-head .flecha{color:var(--muted);font-size:12px;transition:transform .2s;}
+  .guion.abierto .guion-head .flecha{transform:rotate(90deg);}
+  .guion-head .titulo-g{flex:1;min-width:140px;font-weight:bold;font-size:14.5px;}
+  .guion-head .fecha-g{font-size:12px;color:var(--muted);}
+  .guion-head .borrar{background:none;border:none;color:var(--muted);cursor:pointer;font-size:15px;padding:2px 4px;}
+  .guion-head .borrar:hover{color:var(--red);}
+  .guion-cuerpo{display:none;padding:0 15px 15px;}
+  .guion.abierto .guion-cuerpo{display:block;}
+  .guion-cuerpo input.titulo-edit{
+    width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:10px;
+    color:var(--txt);font-size:15px;font-weight:bold;padding:10px 12px;outline:none;
+    font-family:inherit;margin-bottom:10px;
+  }
+  .guion-cuerpo input.titulo-edit:focus{border-color:var(--gold);}
+  .guion-texto{
+    width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:10px;
+    color:var(--txt);font-size:14px;line-height:1.55;padding:12px 14px;outline:none;
+    font-family:inherit;resize:vertical;min-height:220px;
+  }
+  .guion-texto:focus{border-color:var(--gold);}
+  .guion-meta{display:flex;gap:14px;flex-wrap:wrap;margin-top:9px;font-size:12px;color:var(--muted);align-items:center;}
+  .guion-meta .chip{
+    background:rgba(34,211,238,.1);color:var(--cyan);border:1px solid rgba(34,211,238,.3);
+    border-radius:999px;padding:2px 9px;font-size:11px;
+  }
+  .guion-meta .stats-g{margin-left:auto;}
+  .sin-guiones{color:var(--muted);font-size:13px;font-style:italic;}
+
+  /* ---------- Análisis de estilo ---------- */
+  .como-box{
+    background:rgba(34,211,238,.06);border:1px solid rgba(34,211,238,.25);border-radius:12px;
+    padding:12px 15px;font-size:13px;color:var(--txt);margin-bottom:14px;line-height:1.55;
+  }
+  .como-box b{color:var(--cyan);}
+  .analisis-form input[type=text]{
+    width:100%;background:#0A0F1A;border:1px solid var(--line);border-radius:12px;
+    color:var(--txt);font-size:14px;padding:11px 13px;outline:none;font-family:inherit;margin-bottom:8px;
+  }
+  .analisis-form input[type=text]:focus{border-color:var(--gold);}
+  .analisis-form textarea{
+    width:100%;background:#0A0F1A;border:1px solid var(--line);border-radius:12px;
+    color:var(--txt);font-size:13.5px;line-height:1.5;padding:12px 14px;outline:none;
+    font-family:inherit;resize:vertical;min-height:130px;margin-bottom:10px;
+  }
+  .analisis-form textarea:focus{border-color:var(--gold);}
+  .resultado-analisis{
+    background:#0A0F1A;border:1px solid var(--line);border-radius:14px;padding:16px;margin-top:14px;
+  }
+  .resultado-analisis h3{margin:0 0 12px;font-size:15px;color:var(--gold);}
+  .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:14px;}
+  .stat-box{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;text-align:center;}
+  .stat-box .num{font-size:20px;font-weight:bold;color:var(--cyan);}
+  .stat-box .lbl{font-size:11px;color:var(--muted);margin-top:2px;}
+  .analisis-seccion{margin-bottom:12px;}
+  .analisis-seccion .etq{font-size:12px;font-weight:bold;color:var(--lila);text-transform:uppercase;
+    letter-spacing:1px;margin-bottom:5px;}
+  .analisis-seccion .contenido-a{
+    background:var(--panel2);border-left:3px solid var(--purple);border-radius:0 8px 8px 0;
+    padding:9px 12px;font-size:13px;line-height:1.5;color:var(--txt);
+  }
+  .palabras-top{display:flex;gap:6px;flex-wrap:wrap;}
+  .palabra-pill{background:rgba(255,209,102,.1);color:var(--gold);border:1px solid rgba(255,209,102,.3);
+    border-radius:999px;padding:3px 11px;font-size:12px;}
+  .palabra-pill small{color:var(--muted);}
+  .referencia{
+    display:flex;align-items:center;gap:10px;background:#0A0F1A;border:1px solid var(--line);
+    border-radius:12px;padding:10px 13px;margin-bottom:8px;flex-wrap:wrap;
+  }
+  .referencia .tit-ref{flex:1;min-width:140px;font-size:13.5px;font-weight:bold;}
+  .referencia .fecha-ref{font-size:11px;color:var(--muted);}
+  .referencia button{background:var(--panel2);border:1px solid var(--line);border-radius:8px;color:var(--cyan);
+    font-size:12px;padding:6px 10px;cursor:pointer;font-family:inherit;}
+  .referencia button:hover{border-color:var(--cyan);}
+  .referencia .borrar{color:var(--muted);border:none;background:none;font-size:15px;}
+  .referencia .borrar:hover{color:var(--red);}
+  .idea .a-guion{background:var(--panel2);border:1px solid var(--line);border-radius:8px;color:var(--gold);
+    font-size:12px;padding:6px 10px;cursor:pointer;font-family:inherit;white-space:nowrap;}
+  .idea .a-guion:hover{border-color:var(--gold);}
+
+  /* ---------- Transcripción automática ---------- */
+  details.transcribir{
+    background:rgba(0,229,160,.05);border:1px solid rgba(0,229,160,.25);border-radius:12px;
+    padding:0;margin-bottom:14px;border-top:1px solid rgba(0,229,160,.25);
+  }
+  details.transcribir summary{
+    padding:12px 15px;color:var(--green);font-size:13.5px;font-weight:bold;cursor:pointer;
+    list-style:none;user-select:none;
+  }
+  details.transcribir summary::-webkit-details-marker{display:none;}
+  details.transcribir summary::before{content:"🤖 ";}
+  details.transcribir .cuerpo-t{padding:0 15px 15px;}
+  .fila-key{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
+  .fila-key input{
+    flex:1;min-width:220px;background:#0A0F1A;border:1px solid var(--line);border-radius:10px;
+    color:var(--txt);font-size:13px;padding:10px 12px;outline:none;font-family:inherit;
+  }
+  .fila-key input:focus{border-color:var(--green);}
+  .nota-key{font-size:11.5px;color:var(--muted);margin-bottom:12px;line-height:1.5;}
+  .fila-archivo{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+  .fila-archivo input[type=file]{flex:1;min-width:200px;color:var(--muted);font-size:12.5px;font-family:inherit;}
+  .fila-archivo input[type=file]::file-selector-button{
+    background:var(--panel2);border:1px solid var(--line);border-radius:8px;color:var(--txt);
+    font-size:12.5px;padding:8px 12px;cursor:pointer;font-family:inherit;margin-right:10px;
+  }
+  .btn-transcribir{
+    background:linear-gradient(90deg,var(--green),var(--cyan));border:none;border-radius:10px;
+    color:#04110C;font-size:13.5px;font-weight:bold;padding:10px 18px;cursor:pointer;font-family:inherit;
+  }
+  .btn-transcribir:disabled{opacity:.5;cursor:wait;}
+  .estado-transcripcion{font-size:13px;margin-top:10px;line-height:1.5;}
+  .estado-transcripcion.ok{color:var(--green);}
+  .estado-transcripcion.error{color:var(--red);}
+  .estado-transcripcion.progreso{color:var(--cyan);}
+  @keyframes girar{to{transform:rotate(360deg);}}
+  .spinner{display:inline-block;width:13px;height:13px;border:2px solid rgba(34,211,238,.3);
+    border-top-color:var(--cyan);border-radius:50%;animation:girar .8s linear infinite;vertical-align:-2px;margin-right:6px;}
+
+  footer{text-align:center;color:var(--muted);font-size:12px;margin-top:30px;}
+  footer b{color:var(--lila);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="badge">BotLab · Marca Personal</div>
+    <h1>🎬 Organizador de Contenido</h1>
+    <p class="sub">Tu semana de creación de contenido, organizada: investigación, grabación, edición y publicación.</p>
+  </header>
+
+  <!-- ============ CONFIG: día de cada fase ============ -->
+  <section class="card">
+    <h2>📅 Tu semana ideal</h2>
+    <p class="hint">Asigna un día a cada fase. Puedes cambiarlo cuando quieras y el calendario de abajo se reacomoda solo.</p>
+    <div class="fases-grid" id="fasesConfig"></div>
+  </section>
+
+  <!-- ============ SEMANA ============ -->
+  <section class="card">
+    <div class="semana-nav">
+      <button class="btn" id="btnPrev">← Anterior</button>
+      <div class="titulo" id="tituloSemana">Semana</div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn hoy" id="btnHoy">Hoy</button>
+        <button class="btn" id="btnNext">Siguiente →</button>
+      </div>
+    </div>
+    <div class="progreso-row">
+      <div class="meter"><div class="fill" id="barraProgreso"></div></div>
+      <div class="pct" id="pctProgreso">0%</div>
+    </div>
+    <div class="dias" id="dias"></div>
+  </section>
+
+  <!-- ============ BANCO DE IDEAS ============ -->
+  <section class="card">
+    <h2>💡 Banco de ideas</h2>
+    <p class="hint">Anota aquí tus ideas de videos (cómo implementarías bots en diferentes negocios) y ve moviendo cada una por su etapa.</p>
+    <div class="idea-form">
+      <input type="text" id="inputIdea" placeholder="Ej: Cómo un restaurante puede automatizar reservas con un bot" maxlength="140" />
+      <button class="btn-add" id="btnAddIdea">+ Agregar idea</button>
+    </div>
+    <div id="listaIdeas"></div>
+  </section>
+
+  <!-- ============ MIS GUIONES ============ -->
+  <section class="card">
+    <h2>📝 Mis guiones</h2>
+    <p class="hint">Escribe tus guiones aquí mismo. Cada día que trabajes en uno queda registrado automáticamente, y todo se guarda solo mientras escribes.</p>
+    <div class="idea-form">
+      <input type="text" id="inputGuion" placeholder="Título del nuevo guion. Ej: Bot de citas para barberías" maxlength="140" />
+      <button class="btn-add" id="btnAddGuion">+ Nuevo guion</button>
+    </div>
+    <div id="listaGuiones"></div>
+  </section>
+
+  <!-- ============ ANÁLISIS DE ESTILO ============ -->
+  <section class="card">
+    <h2>🎯 Análisis de estilo (transcripciones)</h2>
+    <p class="hint">Pega la transcripción de un video que te guste y el programa analiza su estilo: gancho, llamados a la acción, ritmo y palabras clave. Luego úsalo como plantilla para tus guiones.</p>
+    <div class="como-box">
+      <b>¿Cómo consigo la transcripción?</b><br/>
+      • <b>YouTube:</b> abre el video → toca la descripción → botón <b>"Mostrar transcripción"</b> → selecciona y copia el texto.<br/>
+      • <b>TikTok / Reels:</b> muchos videos muestran los subtítulos con el botón CC; también puedes dictar lo que dice el video con el micrófono de tu teclado en el celular.<br/>
+      • <b>O automático:</b> descarga el video o audio y transcríbelo aquí abajo con inteligencia artificial. 👇
+    </div>
+    <details class="transcribir" id="detTranscribir">
+      <summary>Transcripción automática con OpenAI (sube el archivo del video o audio)</summary>
+      <div class="cuerpo-t">
+        <div class="fila-key">
+          <input type="password" id="openaiKey" placeholder="Tu clave de OpenAI (sk-...)" autocomplete="off" />
+        </div>
+        <div class="nota-key">
+          🔒 Tu clave se guarda <b>solo en este navegador</b>, nunca se sube a ningún lado. Se necesita una clave de
+          <b>platform.openai.com</b> (menú API Keys). Costo aproximado: <b>$0.006 USD por minuto</b> de audio —
+          un video de 10 minutos cuesta unos 6 centavos. Acepta mp3, mp4, m4a, wav o webm de hasta <b>25 MB</b>;
+          si tu video pesa más, conviértelo a mp3 (solo audio) y queda ligerito.
+        </div>
+        <div class="fila-archivo">
+          <input type="file" id="archivoAudio" accept=".mp3,.mp4,.mpeg,.mpga,.m4a,.wav,.webm,audio/*,video/mp4,video/webm" />
+          <button class="btn-transcribir" id="btnTranscribir">🎙 Transcribir</button>
+        </div>
+        <div class="estado-transcripcion" id="estadoTranscripcion"></div>
+      </div>
+    </details>
+    <div class="analisis-form">
+      <input type="text" id="refTitulo" placeholder="Título o enlace del video de referencia" maxlength="200" />
+      <textarea id="refTexto" placeholder="Pega aquí la transcripción del video..."></textarea>
+      <button class="btn-add" id="btnAnalizar">🔎 Analizar estilo</button>
+    </div>
+    <div id="resultadoAnalisis"></div>
+    <div style="margin-top:18px;">
+      <div class="analisis-seccion"><div class="etq">Referencias guardadas</div></div>
+      <div id="listaReferencias"></div>
+    </div>
+  </section>
+
+  <footer>Hecho con 🤖 para <b>BotLab</b> · Tu progreso se guarda automáticamente en este navegador.</footer>
+</div>
+
+<script>
+/* ================= Datos base ================= */
+const DIAS_SEMANA = ["lunes","martes","miércoles","jueves","viernes","sábado","domingo"];
+
+const FASES = [
+  { id:"guion",    icono:"🔍", nombre:"Investigación y guiones", color:"#22D3EE", diaDefault:0,
+    tareas:["Investigar tendencias y temas","Elegir el tema del video","Escribir el guion","Preparar lista de tomas"] },
+  { id:"grabacion",icono:"🎥", nombre:"Grabación", color:"#FF4D6A", diaDefault:1,
+    tareas:["Preparar set, luz y audio","Grabar el video","Grabar tomas extra / b-roll","Respaldar el material"] },
+  { id:"edicion1", icono:"✂️", nombre:"Edición (día 1)", color:"#7C6FFF", diaDefault:2,
+    tareas:["Seleccionar las mejores tomas","Hacer el primer corte"] },
+  { id:"edicion2", icono:"🎞️", nombre:"Edición (día 2)", color:"#C4BBFF", diaDefault:3,
+    tareas:["Corte final y ajustes","Subtítulos y gráficos","Miniatura y título"] },
+  { id:"publicar", icono:"🚀", nombre:"Publicar y analizar", color:"#00E5A0", diaDefault:4,
+    tareas:["Publicar el video","Responder comentarios","Analizar resultados de la semana","Anotar ideas para la próxima semana"] },
+];
+
+const ESTADOS_IDEA = [
+  { id:"idea",     nombre:"💡 Idea",      color:"#7A8BA8" },
+  { id:"guion",    nombre:"🔍 Guion",     color:"#22D3EE" },
+  { id:"grabado",  nombre:"🎥 Grabado",   color:"#FF4D6A" },
+  { id:"editado",  nombre:"🎞️ Editado",  color:"#C4BBFF" },
+  { id:"publicado",nombre:"🚀 Publicado", color:"#00E5A0" },
+];
+
+/* ================= Estado y guardado ================= */
+const CLAVE = "botlab_organizador_contenido_v1";
+
+function estadoInicial(){
+  const config = {};
+  FASES.forEach(f => config[f.id] = f.diaDefault);
+  return { config, semanas:{}, ideas:[], guiones:[], referencias:[] };
+}
+
+let estado = cargar();
+
+function cargar(){
+  try{
+    const raw = localStorage.getItem(CLAVE);
+    if(!raw) return estadoInicial();
+    const data = JSON.parse(raw);
+    const base = estadoInicial();
+    return {
+      config: Object.assign(base.config, data.config || {}),
+      semanas: data.semanas || {},
+      ideas: Array.isArray(data.ideas) ? data.ideas : [],
+      guiones: Array.isArray(data.guiones) ? data.guiones : [],
+      referencias: Array.isArray(data.referencias) ? data.referencias : [],
+    };
+  }catch(e){ return estadoInicial(); }
+}
+
+function guardar(){
+  localStorage.setItem(CLAVE, JSON.stringify(estado));
+}
+
+/* ================= Semanas (clave = lunes de la semana) ================= */
+let offsetSemana = 0; // 0 = semana actual
+
+function lunesDe(fecha){
+  const d = new Date(fecha.getFullYear(), fecha.getMonth(), fecha.getDate());
+  const dia = (d.getDay() + 6) % 7; // 0 = lunes
+  d.setDate(d.getDate() - dia);
+  return d;
+}
+
+function claveSemana(lunes){
+  const y = lunes.getFullYear();
+  const m = String(lunes.getMonth()+1).padStart(2,"0");
+  const dd = String(lunes.getDate()).padStart(2,"0");
+  return y + "-" + m + "-" + dd;
+}
+
+function lunesActual(){
+  const l = lunesDe(new Date());
+  l.setDate(l.getDate() + offsetSemana * 7);
+  return l;
+}
+
+function datosSemana(clave){
+  if(!estado.semanas[clave]) estado.semanas[clave] = { hechas:{}, extras:{}, notas:{} };
+  const s = estado.semanas[clave];
+  s.hechas = s.hechas || {};
+  s.extras = s.extras || {};
+  s.notas  = s.notas  || {};
+  return s;
+}
+
+function fmtFecha(d){
+  return d.getDate() + " " + ["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"][d.getMonth()];
+}
+
+/* ================= Render: configuración de fases ================= */
+function renderConfig(){
+  const cont = document.getElementById("fasesConfig");
+  cont.innerHTML = "";
+  FASES.forEach(f => {
+    const div = document.createElement("div");
+    div.className = "fase-cfg";
+    div.style.setProperty("--fase-color", f.color);
+    const opciones = DIAS_SEMANA.map((d,i) =>
+      `<option value="${i}" ${estado.config[f.id]===i?"selected":""}>${d.charAt(0).toUpperCase()+d.slice(1)}</option>`
+    ).join("");
+    div.innerHTML = `
+      <div class="nombre">${f.icono} ${f.nombre}</div>
+      <select data-fase="${f.id}">${opciones}</select>`;
+    div.querySelector("select").addEventListener("change", e => {
+      estado.config[f.id] = parseInt(e.target.value, 10);
+      guardar();
+      renderSemana();
+    });
+    cont.appendChild(div);
+  });
+}
+
+/* ================= Render: semana ================= */
+function renderSemana(){
+  const lunes = lunesActual();
+  const clave = claveSemana(lunes);
+  const sem = datosSemana(clave);
+  const domingo = new Date(lunes); domingo.setDate(domingo.getDate()+6);
+
+  const titulo = document.getElementById("tituloSemana");
+  const etiqueta = offsetSemana === 0 ? "Esta semana" :
+                   offsetSemana === -1 ? "Semana pasada" :
+                   offsetSemana === 1 ? "Próxima semana" : "Semana";
+  titulo.innerHTML = etiqueta + " <small>" + fmtFecha(lunes) + " – " + fmtFecha(domingo) + "</small>";
+
+  // fases por día
+  const fasesPorDia = {};
+  FASES.forEach(f => {
+    const d = estado.config[f.id];
+    (fasesPorDia[d] = fasesPorDia[d] || []).push(f);
+  });
+
+  const hoy = new Date();
+  const cont = document.getElementById("dias");
+  cont.innerHTML = "";
+
+  let totalTareas = 0, tareasHechas = 0;
+
+  DIAS_SEMANA.forEach((nombreDia, i) => {
+    const fases = fasesPorDia[i] || [];
+    if(fases.length === 0 && i >= 5) return; // oculta fin de semana si está libre
+
+    const fecha = new Date(lunes); fecha.setDate(fecha.getDate()+i);
+    const esHoy = fecha.toDateString() === hoy.toDateString();
+
+    const dia = document.createElement("div");
+    dia.className = "dia" + (esHoy ? " es-hoy" : "");
+
+    let html = `
+      <div class="dia-head">
+        <span class="nombre">${nombreDia}</span>
+        ${esHoy ? '<span class="tag-hoy">Hoy</span>' : ""}
+        <span class="fecha">${fmtFecha(fecha)}</span>
+      </div>`;
+    dia.innerHTML = html;
+
+    if(fases.length === 0){
+      const libre = document.createElement("div");
+      libre.className = "dia-libre";
+      libre.textContent = "Día libre 😌";
+      dia.appendChild(libre);
+    }
+
+    fases.forEach(f => {
+      const bloque = document.createElement("div");
+      bloque.className = "fase-bloque";
+      bloque.style.setProperty("--fase-color", f.color);
+      bloque.innerHTML = `<div class="fase-titulo">${f.icono} ${f.nombre}</div>`;
+
+      const extras = sem.extras[f.id] || [];
+      const listaTareas = f.tareas.map((t,idx) => ({ texto:t, key:f.id+":"+idx, extraIdx:null }))
+        .concat(extras.map((t,idx) => ({ texto:t, key:f.id+":x"+idx, extraIdx:idx })));
+
+      listaTareas.forEach(t => {
+        totalTareas++;
+        const hecha = !!sem.hechas[t.key];
+        if(hecha) tareasHechas++;
+        const label = document.createElement("label");
+        label.className = "tarea" + (hecha ? " hecha" : "");
+        label.innerHTML = `
+          <input type="checkbox" ${hecha?"checked":""} />
+          <span class="txt">${escapar(t.texto)}</span>
+          ${t.extraIdx !== null ? '<button class="del" title="Eliminar tarea">✕</button>' : ""}`;
+        label.querySelector("input").addEventListener("change", e => {
+          sem.hechas[t.key] = e.target.checked;
+          guardar();
+          renderSemana();
+        });
+        const del = label.querySelector(".del");
+        if(del) del.addEventListener("click", e => {
+          e.preventDefault();
+          extras.splice(t.extraIdx, 1);
+          delete sem.hechas[t.key];
+          sem.extras[f.id] = extras;
+          guardar();
+          renderSemana();
+        });
+        bloque.appendChild(label);
+      });
+
+      // agregar tarea propia
+      const addRow = document.createElement("div");
+      addRow.className = "add-tarea";
+      addRow.innerHTML = `<input type="text" placeholder="+ tarea propia" maxlength="100" /><button title="Agregar">+</button>`;
+      const inp = addRow.querySelector("input");
+      const agregar = () => {
+        const v = inp.value.trim();
+        if(!v) return;
+        (sem.extras[f.id] = sem.extras[f.id] || []).push(v);
+        guardar();
+        renderSemana();
+      };
+      addRow.querySelector("button").addEventListener("click", agregar);
+      inp.addEventListener("keydown", e => { if(e.key === "Enter") agregar(); });
+      bloque.appendChild(addRow);
+
+      dia.appendChild(bloque);
+    });
+
+    // notas del día
+    const notas = document.createElement("textarea");
+    notas.className = "notas";
+    notas.placeholder = "Notas del día (tema del video, links, pendientes...)";
+    notas.value = sem.notas[i] || "";
+    notas.addEventListener("input", () => {
+      sem.notas[i] = notas.value;
+      guardar();
+    });
+    dia.appendChild(notas);
+
+    cont.appendChild(dia);
+  });
+
+  const pct = totalTareas ? Math.round(tareasHechas / totalTareas * 100) : 0;
+  document.getElementById("barraProgreso").style.width = pct + "%";
+  document.getElementById("pctProgreso").textContent = pct + "%";
+}
+
+/* ================= Render: banco de ideas ================= */
+function renderIdeas(){
+  const cont = document.getElementById("listaIdeas");
+  cont.innerHTML = "";
+  if(estado.ideas.length === 0){
+    cont.innerHTML = '<div class="sin-ideas">Aún no hay ideas. ¡Agrega la primera! 💡</div>';
+    return;
+  }
+  estado.ideas.forEach((idea, i) => {
+    const est = ESTADOS_IDEA.find(e => e.id === idea.estado) || ESTADOS_IDEA[0];
+    const div = document.createElement("div");
+    div.className = "idea";
+    const opciones = ESTADOS_IDEA.map(e =>
+      `<option value="${e.id}" ${e.id===idea.estado?"selected":""}>${e.nombre}</option>`
+    ).join("");
+    div.innerHTML = `
+      <span class="estado-pill" style="background:${est.color}22;color:${est.color};border:1px solid ${est.color}55;">${est.nombre}</span>
+      <span class="titulo-idea">${escapar(idea.titulo)}</span>
+      <button class="a-guion" title="Crear guion con este título">📝 Guion</button>
+      <select>${opciones}</select>
+      <button class="borrar" title="Eliminar idea">🗑</button>`;
+    div.querySelector("select").addEventListener("change", e => {
+      idea.estado = e.target.value;
+      guardar();
+      renderIdeas();
+    });
+    div.querySelector(".a-guion").addEventListener("click", () => {
+      crearGuion(idea.titulo, "");
+      if(idea.estado === "idea"){ idea.estado = "guion"; guardar(); renderIdeas(); }
+      document.getElementById("listaGuiones").scrollIntoView({behavior:"smooth"});
+    });
+    div.querySelector(".borrar").addEventListener("click", () => {
+      if(confirm("¿Eliminar esta idea?")){
+        estado.ideas.splice(i,1);
+        guardar();
+        renderIdeas();
+      }
+    });
+    cont.appendChild(div);
+  });
+}
+
+function agregarIdea(){
+  const inp = document.getElementById("inputIdea");
+  const v = inp.value.trim();
+  if(!v) return;
+  estado.ideas.unshift({ titulo:v, estado:"idea" });
+  inp.value = "";
+  guardar();
+  renderIdeas();
+}
+
+/* ================= Guiones ================= */
+let guionAbierto = null;
+
+function hoyISO(){
+  const d = new Date();
+  return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+}
+
+function fmtISO(iso){
+  const [y,m,d] = iso.split("-").map(Number);
+  return d + " " + ["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"][m-1];
+}
+
+function registrarDiaTrabajo(guion){
+  const hoy = hoyISO();
+  guion.dias = guion.dias || [];
+  if(!guion.dias.includes(hoy)) guion.dias.push(hoy);
+}
+
+function crearGuion(titulo, contenido){
+  const g = { id: Date.now() + "-" + Math.floor(Math.random()*9999),
+              titulo: titulo || "Guion sin título",
+              contenido: contenido || "",
+              dias: [hoyISO()] };
+  estado.guiones.unshift(g);
+  guionAbierto = g.id;
+  guardar();
+  renderGuiones();
+  return g;
+}
+
+function statsTexto(texto){
+  const palabras = (texto.trim().match(/\S+/g) || []).length;
+  const minutos = palabras / 150; // ritmo hablado promedio
+  let dur;
+  if(palabras === 0) dur = "0 min";
+  else if(minutos < 1) dur = "~" + Math.max(5, Math.round(minutos*60/5)*5) + " seg";
+  else dur = "~" + (Math.round(minutos*10)/10).toString().replace(".",",") + " min";
+  return { palabras, dur };
+}
+
+function renderGuiones(){
+  const cont = document.getElementById("listaGuiones");
+  cont.innerHTML = "";
+  if(estado.guiones.length === 0){
+    cont.innerHTML = '<div class="sin-guiones">Aún no hay guiones. Crea el primero arriba, o desde una idea con el botón 📝. </div>';
+    return;
+  }
+  estado.guiones.forEach((g, i) => {
+    g.dias = g.dias || [];
+    const abierto = guionAbierto === g.id;
+    const st = statsTexto(g.contenido || "");
+    const div = document.createElement("div");
+    div.className = "guion" + (abierto ? " abierto" : "");
+
+    const head = document.createElement("div");
+    head.className = "guion-head";
+    head.innerHTML = `
+      <span class="flecha">▶</span>
+      <span class="titulo-g">${escapar(g.titulo)}</span>
+      <span class="fecha-g">${g.dias.length ? "Creado: " + fmtISO(g.dias[0]) : ""}</span>
+      <button class="borrar" title="Eliminar guion">🗑</button>`;
+    head.addEventListener("click", e => {
+      if(e.target.closest(".borrar")) return;
+      guionAbierto = abierto ? null : g.id;
+      renderGuiones();
+    });
+    head.querySelector(".borrar").addEventListener("click", () => {
+      if(confirm("¿Eliminar el guion \"" + g.titulo + "\"? Esto no se puede deshacer.")){
+        estado.guiones.splice(i,1);
+        if(guionAbierto === g.id) guionAbierto = null;
+        guardar();
+        renderGuiones();
+      }
+    });
+    div.appendChild(head);
+
+    const cuerpo = document.createElement("div");
+    cuerpo.className = "guion-cuerpo";
+    if(abierto){
+      const inpTitulo = document.createElement("input");
+      inpTitulo.type = "text"; inpTitulo.className = "titulo-edit";
+      inpTitulo.maxLength = 140; inpTitulo.value = g.titulo;
+      inpTitulo.addEventListener("input", () => {
+        g.titulo = inpTitulo.value;
+        head.querySelector(".titulo-g").textContent = g.titulo || "Guion sin título";
+        registrarDiaTrabajo(g);
+        guardar();
+      });
+      cuerpo.appendChild(inpTitulo);
+
+      const ta = document.createElement("textarea");
+      ta.className = "guion-texto";
+      ta.placeholder = "Escribe tu guion aquí...\n\n🎣 GANCHO (primeros 3-5 segundos):\n\n📖 DESARROLLO:\n\n📣 LLAMADO A LA ACCIÓN:";
+      ta.value = g.contenido || "";
+      ta.addEventListener("input", () => {
+        g.contenido = ta.value;
+        registrarDiaTrabajo(g);
+        guardar();
+        const s = statsTexto(g.contenido);
+        meta.querySelector(".stats-g").textContent = s.palabras + " palabras · " + s.dur + " hablado";
+      });
+      cuerpo.appendChild(ta);
+
+      const meta = document.createElement("div");
+      meta.className = "guion-meta";
+      const chips = g.dias.map(d => `<span class="chip">${fmtISO(d)}</span>`).join(" ");
+      meta.innerHTML = `<span>Días trabajados:</span> ${chips || "—"}
+        <span class="stats-g">${st.palabras} palabras · ${st.dur} hablado</span>`;
+      cuerpo.appendChild(meta);
+    }
+    div.appendChild(cuerpo);
+    cont.appendChild(div);
+  });
+}
+
+function agregarGuion(){
+  const inp = document.getElementById("inputGuion");
+  crearGuion(inp.value.trim(), "");
+  inp.value = "";
+}
+
+/* ================= Análisis de estilo ================= */
+const STOPWORDS = new Set(("de la que el en y a los se del las un por con no una su para es al lo como más pero sus le " +
+  "ya o fue este ha sí porque esta son entre está cuando muy sin sobre ser tiene también me hasta hay donde han quien " +
+  "están estado desde todo nos durante estados todos uno les ni contra otros fueron ese eso había ante ellos e esto mí " +
+  "antes algunos qué unos yo otro otras otra él tanto esa estos mucho quienes nada muchos cual sea poco ella estar " +
+  "haber estas estaba estamos algunas algo nosotros tu te ti si eres va voy van vas les os mi mis tus era eran solo " +
+  "así entonces pues bueno bien aquí ahí allá cada vez veces ver hacer hace tenemos tienen puede pueden podemos quiero " +
+  "quieres decir dice digo tener él ustedes usted vamos estás dónde cómo cuál cuándo").split(/\s+/));
+
+const CTA_PALABRAS = ["suscríbete","suscribete","sígueme","sigueme","comenta","comparte","dale like","dame like",
+  "like","guarda este video","guárdalo","link en","enlace en","escríbeme","escribeme","mándame","mandame",
+  "agenda","descarga","regístrate","registrate","campanita","comparte este","etiqueta","mensaje directo","dm"];
+
+function analizarTexto(texto){
+  const limpio = texto.trim().replace(/\s+/g," ");
+  const st = statsTexto(limpio);
+  const oraciones = limpio.split(/[.!?¡¿\n]+/).map(s => s.trim()).filter(s => s.length > 2);
+  const preguntas = (limpio.match(/\?/g) || []).length;
+
+  const palabrasArr = limpio.toLowerCase().replace(/[^\wáéíóúüñ\s]/gi," ").split(/\s+/).filter(Boolean);
+  const frec = {};
+  palabrasArr.forEach(p => { if(p.length > 3 && !STOPWORDS.has(p)) frec[p] = (frec[p]||0)+1; });
+  const top = Object.entries(frec).sort((a,b) => b[1]-a[1]).slice(0,8).filter(e => e[1] > 1);
+
+  const gancho = palabrasArr.length ? limpio.split(/\s+/).slice(0,28).join(" ") + (palabrasArr.length > 28 ? "…" : "") : "";
+
+  const bajo = limpio.toLowerCase();
+  const ctas = [];
+  oraciones.forEach(o => {
+    const ob = o.toLowerCase();
+    if(CTA_PALABRAS.some(c => ob.includes(c)) && ctas.length < 4) ctas.push(o);
+  });
+
+  const promedioOracion = oraciones.length ? Math.round(palabrasArr.length / oraciones.length) : 0;
+  const ritmo = promedioOracion === 0 ? "—" :
+    promedioOracion <= 9 ? "Rápido y directo (frases cortas)" :
+    promedioOracion <= 16 ? "Medio y conversacional" : "Pausado y explicativo (frases largas)";
+
+  return { palabras: st.palabras, dur: st.dur, oraciones: oraciones.length, preguntas,
+           promedioOracion, ritmo, gancho, ctas, top };
+}
+
+let ultimoAnalisis = null;
+
+function renderResultadoAnalisis(a, titulo){
+  const cont = document.getElementById("resultadoAnalisis");
+  if(!a){ cont.innerHTML = ""; return; }
+  const topHtml = a.top.length
+    ? a.top.map(([p,n]) => `<span class="palabra-pill">${escapar(p)} <small>×${n}</small></span>`).join("")
+    : '<span style="color:var(--muted);font-size:12px;">Sin repeticiones destacadas</span>';
+  const ctasHtml = a.ctas.length
+    ? a.ctas.map(c => `<div class="contenido-a">📣 ${escapar(c)}</div>`).join('<div style="height:6px;"></div>')
+    : '<div class="contenido-a" style="color:var(--muted);">No se detectaron llamados a la acción claros.</div>';
+  cont.innerHTML = `
+    <div class="resultado-analisis">
+      <h3>📊 Análisis: ${escapar(titulo || "video de referencia")}</h3>
+      <div class="stat-grid">
+        <div class="stat-box"><div class="num">${a.palabras}</div><div class="lbl">palabras</div></div>
+        <div class="stat-box"><div class="num">${a.dur}</div><div class="lbl">duración hablada</div></div>
+        <div class="stat-box"><div class="num">${a.preguntas}</div><div class="lbl">preguntas al público</div></div>
+        <div class="stat-box"><div class="num">${a.promedioOracion}</div><div class="lbl">palabras por frase</div></div>
+      </div>
+      <div class="analisis-seccion">
+        <div class="etq">🎣 Gancho (cómo empieza)</div>
+        <div class="contenido-a">${escapar(a.gancho) || "—"}</div>
+      </div>
+      <div class="analisis-seccion">
+        <div class="etq">🗣 Ritmo</div>
+        <div class="contenido-a">${a.ritmo}</div>
+      </div>
+      <div class="analisis-seccion">
+        <div class="etq">📣 Llamados a la acción detectados</div>
+        ${ctasHtml}
+      </div>
+      <div class="analisis-seccion">
+        <div class="etq">🔑 Palabras que más repite</div>
+        <div class="palabras-top">${topHtml}</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;">
+        <button class="btn-add" id="btnGuardarRef">💾 Guardar como referencia</button>
+        <button class="btn" id="btnPlantilla">📝 Crear guion con este estilo</button>
+      </div>
+    </div>`;
+  document.getElementById("btnGuardarRef").addEventListener("click", guardarReferencia);
+  document.getElementById("btnPlantilla").addEventListener("click", () => crearGuionDesdeAnalisis(a, titulo));
+}
+
+function plantillaDesdeAnalisis(a, titulo){
+  return "🎯 ESTILO DE REFERENCIA: " + (titulo || "video analizado") + "\n" +
+    "· Duración objetivo: " + a.dur + " (" + a.palabras + " palabras aprox.)\n" +
+    "· Ritmo: " + a.ritmo.toLowerCase() + "\n" +
+    "· Preguntas al público: " + a.preguntas + "\n" +
+    (a.top.length ? "· Palabras clave: " + a.top.map(t=>t[0]).join(", ") + "\n" : "") +
+    "\n🎣 GANCHO (primeros 3-5 segundos)\n" +
+    "Referencia: \"" + a.gancho + "\"\nMi versión:\n\n" +
+    "\n📖 DESARROLLO\n(Explica el problema del negocio y cómo lo resolverías con un bot)\n\n" +
+    "\n📣 LLAMADO A LA ACCIÓN\n" +
+    (a.ctas.length ? "Referencia: \"" + a.ctas[0] + "\"\nMi versión:\n" : "Mi versión:\n");
+}
+
+function crearGuionDesdeAnalisis(a, titulo){
+  crearGuion("Guion estilo: " + (titulo || "referencia"), plantillaDesdeAnalisis(a, titulo));
+  document.getElementById("listaGuiones").scrollIntoView({behavior:"smooth"});
+}
+
+function guardarReferencia(){
+  if(!ultimoAnalisis) return;
+  estado.referencias.unshift({
+    id: Date.now() + "-" + Math.floor(Math.random()*9999),
+    titulo: ultimoAnalisis.titulo || "Referencia sin título",
+    analisis: ultimoAnalisis.analisis,
+    fecha: hoyISO(),
+  });
+  guardar();
+  renderReferencias();
+}
+
+function renderReferencias(){
+  const cont = document.getElementById("listaReferencias");
+  cont.innerHTML = "";
+  if(estado.referencias.length === 0){
+    cont.innerHTML = '<div class="sin-ideas">Todavía no has guardado referencias.</div>';
+    return;
+  }
+  estado.referencias.forEach((r, i) => {
+    const div = document.createElement("div");
+    div.className = "referencia";
+    div.innerHTML = `
+      <span class="tit-ref">${escapar(r.titulo)}</span>
+      <span class="fecha-ref">${fmtISO(r.fecha)}</span>
+      <button class="ver">👁 Ver análisis</button>
+      <button class="usar">📝 Usar estilo</button>
+      <button class="borrar" title="Eliminar">🗑</button>`;
+    div.querySelector(".ver").addEventListener("click", () => {
+      ultimoAnalisis = { titulo: r.titulo, analisis: r.analisis };
+      renderResultadoAnalisis(r.analisis, r.titulo);
+      document.getElementById("resultadoAnalisis").scrollIntoView({behavior:"smooth"});
+    });
+    div.querySelector(".usar").addEventListener("click", () => crearGuionDesdeAnalisis(r.analisis, r.titulo));
+    div.querySelector(".borrar").addEventListener("click", () => {
+      if(confirm("¿Eliminar esta referencia?")){
+        estado.referencias.splice(i,1);
+        guardar();
+        renderReferencias();
+      }
+    });
+    cont.appendChild(div);
+  });
+}
+
+function analizar(){
+  const titulo = document.getElementById("refTitulo").value.trim();
+  const texto = document.getElementById("refTexto").value;
+  if(!texto.trim()){
+    alert("Pega primero la transcripción del video en el cuadro de texto.");
+    return;
+  }
+  const a = analizarTexto(texto);
+  ultimoAnalisis = { titulo, analisis: a };
+  renderResultadoAnalisis(a, titulo);
+}
+
+/* ================= Transcripción automática (OpenAI Whisper) ================= */
+const CLAVE_OPENAI = "botlab_openai_key";
+
+function initTranscripcion(){
+  const inpKey = document.getElementById("openaiKey");
+  inpKey.value = localStorage.getItem(CLAVE_OPENAI) || "";
+  inpKey.addEventListener("input", () => localStorage.setItem(CLAVE_OPENAI, inpKey.value.trim()));
+  document.getElementById("btnTranscribir").addEventListener("click", transcribir);
+}
+
+function mostrarEstadoT(clase, html){
+  const el = document.getElementById("estadoTranscripcion");
+  el.className = "estado-transcripcion " + clase;
+  el.innerHTML = html;
+}
+
+async function transcribir(){
+  const key = document.getElementById("openaiKey").value.trim();
+  const archivo = document.getElementById("archivoAudio").files[0];
+  const btn = document.getElementById("btnTranscribir");
+
+  if(!key){
+    mostrarEstadoT("error", "Primero pega tu clave de OpenAI (empieza con sk-). La consigues en platform.openai.com → API Keys.");
+    return;
+  }
+  if(!archivo){
+    mostrarEstadoT("error", "Elige primero el archivo del video o audio que quieres transcribir.");
+    return;
+  }
+  if(archivo.size > 25 * 1024 * 1024){
+    const mb = (archivo.size / 1024 / 1024).toFixed(1);
+    mostrarEstadoT("error", "El archivo pesa " + mb + " MB y el límite es 25 MB. Tip: convierte el video a mp3 (solo audio) y pesará mucho menos.");
+    return;
+  }
+
+  btn.disabled = true;
+  mostrarEstadoT("progreso", '<span class="spinner"></span>Transcribiendo "' + escapar(archivo.name) + '"... esto puede tardar un poco según la duración.');
+
+  try{
+    const fd = new FormData();
+    fd.append("file", archivo);
+    fd.append("model", "whisper-1");
+    fd.append("language", "es");
+
+    const res = await fetch("https://api.openai.com/v1/audio/transcriptions", {
+      method: "POST",
+      headers: { "Authorization": "Bearer " + key },
+      body: fd,
+    });
+
+    if(!res.ok){
+      let msg = "Error " + res.status;
+      try{ const j = await res.json(); if(j.error && j.error.message) msg = j.error.message; }catch(e){}
+      if(res.status === 401) msg = "La clave no es válida o expiró. Revisa que la copiaste completa desde platform.openai.com.";
+      if(res.status === 429) msg = "OpenAI rechazó la petición por límite de uso o falta de saldo en tu cuenta. Revisa tu saldo en platform.openai.com → Billing.";
+      mostrarEstadoT("error", "⚠ " + escapar(msg));
+      return;
+    }
+
+    const data = await res.json();
+    const texto = (data.text || "").trim();
+    if(!texto){
+      mostrarEstadoT("error", "⚠ La transcripción llegó vacía. ¿El archivo tiene voz audible?");
+      return;
+    }
+
+    document.getElementById("refTexto").value = texto;
+    if(!document.getElementById("refTitulo").value.trim()){
+      document.getElementById("refTitulo").value = archivo.name.replace(/\.[^.]+$/, "");
+    }
+    mostrarEstadoT("ok", "✅ ¡Listo! Transcripción colocada abajo y analizada. También puedes editarla antes de volver a analizar.");
+    analizar();
+    document.getElementById("resultadoAnalisis").scrollIntoView({ behavior: "smooth" });
+  }catch(e){
+    mostrarEstadoT("error", "⚠ No se pudo conectar con OpenAI. Revisa tu internet e intenta de nuevo. (" + escapar(e.message) + ")");
+  }finally{
+    btn.disabled = false;
+  }
+}
+
+/* ================= Utilidades ================= */
+function escapar(s){
+  return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+/* ================= Eventos globales ================= */
+document.getElementById("btnPrev").addEventListener("click", () => { offsetSemana--; renderSemana(); });
+document.getElementById("btnNext").addEventListener("click", () => { offsetSemana++; renderSemana(); });
+document.getElementById("btnHoy").addEventListener("click", () => { offsetSemana = 0; renderSemana(); });
+document.getElementById("btnAddIdea").addEventListener("click", agregarIdea);
+document.getElementById("inputIdea").addEventListener("keydown", e => { if(e.key === "Enter") agregarIdea(); });
+document.getElementById("btnAddGuion").addEventListener("click", agregarGuion);
+document.getElementById("inputGuion").addEventListener("keydown", e => { if(e.key === "Enter") agregarGuion(); });
+document.getElementById("btnAnalizar").addEventListener("click", analizar);
+
+/* ================= Inicio ================= */
+renderConfig();
+renderSemana();
+renderIdeas();
+renderGuiones();
+renderReferencias();
+initTranscripcion();
+</script>
+</body>
+</html>
