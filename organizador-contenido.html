@@ -259,6 +259,44 @@
     font-size:12px;padding:6px 10px;cursor:pointer;font-family:inherit;white-space:nowrap;}
   .idea .a-guion:hover{border-color:var(--gold);}
 
+  /* ---------- Transcripción automática ---------- */
+  details.transcribir{
+    background:rgba(0,229,160,.05);border:1px solid rgba(0,229,160,.25);border-radius:12px;
+    padding:0;margin-bottom:14px;border-top:1px solid rgba(0,229,160,.25);
+  }
+  details.transcribir summary{
+    padding:12px 15px;color:var(--green);font-size:13.5px;font-weight:bold;cursor:pointer;
+    list-style:none;user-select:none;
+  }
+  details.transcribir summary::-webkit-details-marker{display:none;}
+  details.transcribir summary::before{content:"🤖 ";}
+  details.transcribir .cuerpo-t{padding:0 15px 15px;}
+  .fila-key{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
+  .fila-key input{
+    flex:1;min-width:220px;background:#0A0F1A;border:1px solid var(--line);border-radius:10px;
+    color:var(--txt);font-size:13px;padding:10px 12px;outline:none;font-family:inherit;
+  }
+  .fila-key input:focus{border-color:var(--green);}
+  .nota-key{font-size:11.5px;color:var(--muted);margin-bottom:12px;line-height:1.5;}
+  .fila-archivo{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+  .fila-archivo input[type=file]{flex:1;min-width:200px;color:var(--muted);font-size:12.5px;font-family:inherit;}
+  .fila-archivo input[type=file]::file-selector-button{
+    background:var(--panel2);border:1px solid var(--line);border-radius:8px;color:var(--txt);
+    font-size:12.5px;padding:8px 12px;cursor:pointer;font-family:inherit;margin-right:10px;
+  }
+  .btn-transcribir{
+    background:linear-gradient(90deg,var(--green),var(--cyan));border:none;border-radius:10px;
+    color:#04110C;font-size:13.5px;font-weight:bold;padding:10px 18px;cursor:pointer;font-family:inherit;
+  }
+  .btn-transcribir:disabled{opacity:.5;cursor:wait;}
+  .estado-transcripcion{font-size:13px;margin-top:10px;line-height:1.5;}
+  .estado-transcripcion.ok{color:var(--green);}
+  .estado-transcripcion.error{color:var(--red);}
+  .estado-transcripcion.progreso{color:var(--cyan);}
+  @keyframes girar{to{transform:rotate(360deg);}}
+  .spinner{display:inline-block;width:13px;height:13px;border:2px solid rgba(34,211,238,.3);
+    border-top-color:var(--cyan);border-radius:50%;animation:girar .8s linear infinite;vertical-align:-2px;margin-right:6px;}
+
   footer{text-align:center;color:var(--muted);font-size:12px;margin-top:30px;}
   footer b{color:var(--lila);}
 </style>
@@ -325,8 +363,28 @@
     <div class="como-box">
       <b>¿Cómo consigo la transcripción?</b><br/>
       • <b>YouTube:</b> abre el video → toca la descripción → botón <b>"Mostrar transcripción"</b> → selecciona y copia el texto.<br/>
-      • <b>TikTok / Reels:</b> muchos videos muestran los subtítulos con el botón CC; también puedes dictar lo que dice el video con el micrófono de tu teclado en el celular.
+      • <b>TikTok / Reels:</b> muchos videos muestran los subtítulos con el botón CC; también puedes dictar lo que dice el video con el micrófono de tu teclado en el celular.<br/>
+      • <b>O automático:</b> descarga el video o audio y transcríbelo aquí abajo con inteligencia artificial. 👇
     </div>
+    <details class="transcribir" id="detTranscribir">
+      <summary>Transcripción automática con OpenAI (sube el archivo del video o audio)</summary>
+      <div class="cuerpo-t">
+        <div class="fila-key">
+          <input type="password" id="openaiKey" placeholder="Tu clave de OpenAI (sk-...)" autocomplete="off" />
+        </div>
+        <div class="nota-key">
+          🔒 Tu clave se guarda <b>solo en este navegador</b>, nunca se sube a ningún lado. Se necesita una clave de
+          <b>platform.openai.com</b> (menú API Keys). Costo aproximado: <b>$0.006 USD por minuto</b> de audio —
+          un video de 10 minutos cuesta unos 6 centavos. Acepta mp3, mp4, m4a, wav o webm de hasta <b>25 MB</b>;
+          si tu video pesa más, conviértelo a mp3 (solo audio) y queda ligerito.
+        </div>
+        <div class="fila-archivo">
+          <input type="file" id="archivoAudio" accept=".mp3,.mp4,.mpeg,.mpga,.m4a,.wav,.webm,audio/*,video/mp4,video/webm" />
+          <button class="btn-transcribir" id="btnTranscribir">🎙 Transcribir</button>
+        </div>
+        <div class="estado-transcripcion" id="estadoTranscripcion"></div>
+      </div>
+    </details>
     <div class="analisis-form">
       <input type="text" id="refTitulo" placeholder="Título o enlace del video de referencia" maxlength="200" />
       <textarea id="refTexto" placeholder="Pega aquí la transcripción del video..."></textarea>
@@ -919,6 +977,86 @@ function analizar(){
   renderResultadoAnalisis(a, titulo);
 }
 
+/* ================= Transcripción automática (OpenAI Whisper) ================= */
+const CLAVE_OPENAI = "botlab_openai_key";
+
+function initTranscripcion(){
+  const inpKey = document.getElementById("openaiKey");
+  inpKey.value = localStorage.getItem(CLAVE_OPENAI) || "";
+  inpKey.addEventListener("input", () => localStorage.setItem(CLAVE_OPENAI, inpKey.value.trim()));
+  document.getElementById("btnTranscribir").addEventListener("click", transcribir);
+}
+
+function mostrarEstadoT(clase, html){
+  const el = document.getElementById("estadoTranscripcion");
+  el.className = "estado-transcripcion " + clase;
+  el.innerHTML = html;
+}
+
+async function transcribir(){
+  const key = document.getElementById("openaiKey").value.trim();
+  const archivo = document.getElementById("archivoAudio").files[0];
+  const btn = document.getElementById("btnTranscribir");
+
+  if(!key){
+    mostrarEstadoT("error", "Primero pega tu clave de OpenAI (empieza con sk-). La consigues en platform.openai.com → API Keys.");
+    return;
+  }
+  if(!archivo){
+    mostrarEstadoT("error", "Elige primero el archivo del video o audio que quieres transcribir.");
+    return;
+  }
+  if(archivo.size > 25 * 1024 * 1024){
+    const mb = (archivo.size / 1024 / 1024).toFixed(1);
+    mostrarEstadoT("error", "El archivo pesa " + mb + " MB y el límite es 25 MB. Tip: convierte el video a mp3 (solo audio) y pesará mucho menos.");
+    return;
+  }
+
+  btn.disabled = true;
+  mostrarEstadoT("progreso", '<span class="spinner"></span>Transcribiendo "' + escapar(archivo.name) + '"... esto puede tardar un poco según la duración.');
+
+  try{
+    const fd = new FormData();
+    fd.append("file", archivo);
+    fd.append("model", "whisper-1");
+    fd.append("language", "es");
+
+    const res = await fetch("https://api.openai.com/v1/audio/transcriptions", {
+      method: "POST",
+      headers: { "Authorization": "Bearer " + key },
+      body: fd,
+    });
+
+    if(!res.ok){
+      let msg = "Error " + res.status;
+      try{ const j = await res.json(); if(j.error && j.error.message) msg = j.error.message; }catch(e){}
+      if(res.status === 401) msg = "La clave no es válida o expiró. Revisa que la copiaste completa desde platform.openai.com.";
+      if(res.status === 429) msg = "OpenAI rechazó la petición por límite de uso o falta de saldo en tu cuenta. Revisa tu saldo en platform.openai.com → Billing.";
+      mostrarEstadoT("error", "⚠ " + escapar(msg));
+      return;
+    }
+
+    const data = await res.json();
+    const texto = (data.text || "").trim();
+    if(!texto){
+      mostrarEstadoT("error", "⚠ La transcripción llegó vacía. ¿El archivo tiene voz audible?");
+      return;
+    }
+
+    document.getElementById("refTexto").value = texto;
+    if(!document.getElementById("refTitulo").value.trim()){
+      document.getElementById("refTitulo").value = archivo.name.replace(/\.[^.]+$/, "");
+    }
+    mostrarEstadoT("ok", "✅ ¡Listo! Transcripción colocada abajo y analizada. También puedes editarla antes de volver a analizar.");
+    analizar();
+    document.getElementById("resultadoAnalisis").scrollIntoView({ behavior: "smooth" });
+  }catch(e){
+    mostrarEstadoT("error", "⚠ No se pudo conectar con OpenAI. Revisa tu internet e intenta de nuevo. (" + escapar(e.message) + ")");
+  }finally{
+    btn.disabled = false;
+  }
+}
+
 /* ================= Utilidades ================= */
 function escapar(s){
   return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -940,6 +1078,7 @@ renderSemana();
 renderIdeas();
 renderGuiones();
 renderReferencias();
+initTranscripcion();
 </script>
 </body>
 </html>
