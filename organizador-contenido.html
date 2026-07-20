@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>🎬 Organizador de Contenido — BotLab</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎬</text></svg>" />
+<style>
+  :root{
+    --bg:#080C14;
+    --panel:#0E1320;
+    --panel2:#111827;
+    --line:#1E2D42;
+    --gold:#FFD166;
+    --green:#00E5A0;
+    --red:#FF4D6A;
+    --purple:#7C6FFF;
+    --lila:#C4BBFF;
+    --cyan:#22D3EE;
+    --orange:#FF8C42;
+    --txt:#F0F4FF;
+    --muted:#7A8BA8;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(1200px 600px at 15% -10%, rgba(124,111,255,.18), transparent 60%),
+      radial-gradient(900px 500px at 110% 0%, rgba(0,229,160,.12), transparent 55%),
+      var(--bg);
+    color:var(--txt);
+    font-family:'Trebuchet MS','Segoe UI',system-ui,-apple-system,sans-serif;
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1120px;margin:0 auto;padding:24px 16px 64px;}
+
+  /* ---------- Header ---------- */
+  header{text-align:center;margin-bottom:26px;}
+  .badge{
+    display:inline-block;font-size:12px;letter-spacing:2px;text-transform:uppercase;
+    color:var(--lila);border:1px solid rgba(124,111,255,.4);
+    padding:5px 14px;border-radius:999px;background:rgba(124,111,255,.08);
+    margin-bottom:14px;
+  }
+  h1{
+    font-size:clamp(26px,6vw,44px);margin:0;line-height:1.05;
+    background:linear-gradient(90deg,var(--gold),var(--orange) 55%,var(--lila));
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    text-shadow:0 0 40px rgba(255,209,102,.18);
+  }
+  .sub{color:var(--muted);margin-top:10px;font-size:15px;}
+
+  .card{
+    background:linear-gradient(180deg,var(--panel),var(--panel2));
+    border:1px solid var(--line);border-radius:20px;padding:22px;
+    box-shadow:0 20px 50px -25px rgba(0,0,0,.8), inset 0 1px 0 rgba(255,255,255,.03);
+    margin-bottom:20px;
+  }
+  .card h2{margin:0 0 4px;font-size:18px;display:flex;align-items:center;gap:9px;}
+  .card .hint{color:var(--muted);font-size:13px;margin:0 0 18px;}
+
+  /* ---------- Config de fases ---------- */
+  .fases-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;}
+  .fase-cfg{
+    background:#0A0F1A;border:1px solid var(--line);border-radius:14px;padding:14px;
+    border-top:3px solid var(--fase-color,var(--purple));
+  }
+  .fase-cfg .nombre{font-weight:bold;font-size:14px;margin-bottom:8px;display:flex;gap:7px;align-items:center;}
+  select{
+    width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:10px;
+    color:var(--txt);font-size:14px;font-weight:bold;padding:9px 10px;outline:none;cursor:pointer;
+    font-family:inherit;
+  }
+  select:focus{border-color:var(--gold);}
+
+  /* ---------- Navegación de semana ---------- */
+  .semana-nav{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;flex-wrap:wrap;}
+  .semana-nav .titulo{font-size:16px;font-weight:bold;color:var(--gold);}
+  .semana-nav .titulo small{display:block;color:var(--muted);font-weight:normal;font-size:12px;margin-top:2px;}
+  .btn{
+    background:var(--panel2);border:1px solid var(--line);border-radius:10px;color:var(--txt);
+    font-size:14px;font-weight:bold;padding:9px 16px;cursor:pointer;font-family:inherit;
+    transition:border .15s, transform .1s;
+  }
+  .btn:hover{border-color:var(--purple);}
+  .btn:active{transform:scale(.97);}
+  .btn.hoy{color:var(--cyan);}
+
+  /* ---------- Progreso ---------- */
+  .progreso-row{display:flex;align-items:center;gap:14px;margin-bottom:18px;}
+  .progreso-row .pct{font-size:26px;font-weight:bold;color:var(--gold);min-width:64px;text-align:right;
+    text-shadow:0 0 24px rgba(255,209,102,.3);}
+  .meter{flex:1;height:16px;border-radius:999px;background:#0A0F1A;border:1px solid var(--line);overflow:hidden;}
+  .meter .fill{height:100%;width:0;border-radius:999px;
+    background:linear-gradient(90deg,var(--green),var(--cyan) 60%,var(--gold));
+    transition:width .5s cubic-bezier(.2,.8,.2,1);box-shadow:0 0 16px rgba(34,211,238,.5);}
+
+  /* ---------- Días ---------- */
+  .dias{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;}
+  .dia{
+    background:#0A0F1A;border:1px solid var(--line);border-radius:16px;padding:16px;
+    display:flex;flex-direction:column;gap:10px;
+  }
+  .dia.es-hoy{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold), 0 0 24px rgba(255,209,102,.15);}
+  .dia-head{display:flex;justify-content:space-between;align-items:center;}
+  .dia-head .nombre{font-weight:bold;font-size:15px;text-transform:capitalize;}
+  .dia-head .fecha{font-size:12px;color:var(--muted);}
+  .tag-hoy{font-size:10px;letter-spacing:1px;color:#080C14;background:var(--gold);
+    border-radius:999px;padding:2px 8px;font-weight:bold;text-transform:uppercase;}
+  .fase-bloque{border-left:3px solid var(--fase-color,var(--purple));padding-left:10px;}
+  .fase-bloque .fase-titulo{font-size:13px;font-weight:bold;color:var(--fase-color,var(--lila));margin-bottom:6px;
+    display:flex;align-items:center;gap:6px;}
+  .dia-libre{color:var(--muted);font-size:13px;font-style:italic;padding:6px 0;}
+
+  .tarea{display:flex;align-items:flex-start;gap:8px;padding:4px 0;font-size:13.5px;cursor:pointer;user-select:none;}
+  .tarea input[type=checkbox]{
+    appearance:none;-webkit-appearance:none;width:17px;height:17px;min-width:17px;margin-top:1px;
+    border:1.5px solid var(--line);border-radius:5px;background:var(--panel2);cursor:pointer;
+    display:inline-flex;align-items:center;justify-content:center;transition:background .15s,border .15s;
+  }
+  .tarea input[type=checkbox]:checked{background:var(--green);border-color:var(--green);}
+  .tarea input[type=checkbox]:checked::after{content:"✓";color:#04110C;font-size:12px;font-weight:bold;}
+  .tarea.hecha .txt{text-decoration:line-through;color:var(--muted);}
+  .tarea .del{margin-left:auto;background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;
+    padding:0 2px;visibility:hidden;}
+  .tarea:hover .del{visibility:visible;}
+  .tarea .del:hover{color:var(--red);}
+
+  .add-tarea{display:flex;gap:6px;margin-top:4px;}
+  .add-tarea input{
+    flex:1;background:var(--panel2);border:1px dashed var(--line);border-radius:8px;
+    color:var(--txt);font-size:12.5px;padding:6px 9px;outline:none;font-family:inherit;
+  }
+  .add-tarea input:focus{border-color:var(--cyan);border-style:solid;}
+  .add-tarea button{
+    background:var(--panel2);border:1px solid var(--line);border-radius:8px;color:var(--cyan);
+    font-size:14px;font-weight:bold;padding:0 11px;cursor:pointer;
+  }
+  .add-tarea button:hover{border-color:var(--cyan);}
+
+  .notas{
+    width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:10px;
+    color:var(--txt);font-size:12.5px;padding:8px 10px;outline:none;font-family:inherit;
+    resize:vertical;min-height:34px;margin-top:auto;
+  }
+  .notas:focus{border-color:var(--gold);}
+  .notas::placeholder{color:var(--muted);opacity:.7;}
+
+  /* ---------- Banco de ideas ---------- */
+  .idea-form{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+  .idea-form input{
+    flex:1;min-width:200px;background:#0A0F1A;border:1px solid var(--line);border-radius:12px;
+    color:var(--txt);font-size:14px;padding:11px 13px;outline:none;font-family:inherit;
+  }
+  .idea-form input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(255,209,102,.12);}
+  .btn-add{
+    background:linear-gradient(90deg,var(--gold),var(--orange));border:none;border-radius:12px;
+    color:#080C14;font-size:14px;font-weight:bold;padding:11px 20px;cursor:pointer;font-family:inherit;
+  }
+  .btn-add:active{transform:scale(.97);}
+  .idea{
+    display:flex;align-items:center;gap:10px;background:#0A0F1A;border:1px solid var(--line);
+    border-radius:12px;padding:10px 13px;margin-bottom:8px;flex-wrap:wrap;
+  }
+  .idea .titulo-idea{flex:1;min-width:150px;font-size:14px;}
+  .idea select{width:auto;font-size:12px;padding:6px 8px;}
+  .estado-pill{font-size:11px;font-weight:bold;border-radius:999px;padding:3px 10px;white-space:nowrap;}
+  .idea .borrar{background:none;border:none;color:var(--muted);cursor:pointer;font-size:15px;padding:2px 4px;}
+  .idea .borrar:hover{color:var(--red);}
+  .sin-ideas{color:var(--muted);font-size:13px;font-style:italic;}
+
+  footer{text-align:center;color:var(--muted);font-size:12px;margin-top:30px;}
+  footer b{color:var(--lila);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="badge">BotLab · Marca Personal</div>
+    <h1>🎬 Organizador de Contenido</h1>
+    <p class="sub">Tu semana de creación de contenido, organizada: investigación, grabación, edición y publicación.</p>
+  </header>
+
+  <!-- ============ CONFIG: día de cada fase ============ -->
+  <section class="card">
+    <h2>📅 Tu semana ideal</h2>
+    <p class="hint">Asigna un día a cada fase. Puedes cambiarlo cuando quieras y el calendario de abajo se reacomoda solo.</p>
+    <div class="fases-grid" id="fasesConfig"></div>
+  </section>
+
+  <!-- ============ SEMANA ============ -->
+  <section class="card">
+    <div class="semana-nav">
+      <button class="btn" id="btnPrev">← Anterior</button>
+      <div class="titulo" id="tituloSemana">Semana</div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn hoy" id="btnHoy">Hoy</button>
+        <button class="btn" id="btnNext">Siguiente →</button>
+      </div>
+    </div>
+    <div class="progreso-row">
+      <div class="meter"><div class="fill" id="barraProgreso"></div></div>
+      <div class="pct" id="pctProgreso">0%</div>
+    </div>
+    <div class="dias" id="dias"></div>
+  </section>
+
+  <!-- ============ BANCO DE IDEAS ============ -->
+  <section class="card">
+    <h2>💡 Banco de ideas</h2>
+    <p class="hint">Anota aquí tus ideas de videos (cómo implementarías bots en diferentes negocios) y ve moviendo cada una por su etapa.</p>
+    <div class="idea-form">
+      <input type="text" id="inputIdea" placeholder="Ej: Cómo un restaurante puede automatizar reservas con un bot" maxlength="140" />
+      <button class="btn-add" id="btnAddIdea">+ Agregar idea</button>
+    </div>
+    <div id="listaIdeas"></div>
+  </section>
+
+  <footer>Hecho con 🤖 para <b>BotLab</b> · Tu progreso se guarda automáticamente en este navegador.</footer>
+</div>
+
+<script>
+/* ================= Datos base ================= */
+const DIAS_SEMANA = ["lunes","martes","miércoles","jueves","viernes","sábado","domingo"];
+
+const FASES = [
+  { id:"guion",    icono:"🔍", nombre:"Investigación y guiones", color:"#22D3EE", diaDefault:0,
+    tareas:["Investigar tendencias y temas","Elegir el tema del video","Escribir el guion","Preparar lista de tomas"] },
+  { id:"grabacion",icono:"🎥", nombre:"Grabación", color:"#FF4D6A", diaDefault:1,
+    tareas:["Preparar set, luz y audio","Grabar el video","Grabar tomas extra / b-roll","Respaldar el material"] },
+  { id:"edicion1", icono:"✂️", nombre:"Edición (día 1)", color:"#7C6FFF", diaDefault:2,
+    tareas:["Seleccionar las mejores tomas","Hacer el primer corte"] },
+  { id:"edicion2", icono:"🎞️", nombre:"Edición (día 2)", color:"#C4BBFF", diaDefault:3,
+    tareas:["Corte final y ajustes","Subtítulos y gráficos","Miniatura y título"] },
+  { id:"publicar", icono:"🚀", nombre:"Publicar y analizar", color:"#00E5A0", diaDefault:4,
+    tareas:["Publicar el video","Responder comentarios","Analizar resultados de la semana","Anotar ideas para la próxima semana"] },
+];
+
+const ESTADOS_IDEA = [
+  { id:"idea",     nombre:"💡 Idea",      color:"#7A8BA8" },
+  { id:"guion",    nombre:"🔍 Guion",     color:"#22D3EE" },
+  { id:"grabado",  nombre:"🎥 Grabado",   color:"#FF4D6A" },
+  { id:"editado",  nombre:"🎞️ Editado",  color:"#C4BBFF" },
+  { id:"publicado",nombre:"🚀 Publicado", color:"#00E5A0" },
+];
+
+/* ================= Estado y guardado ================= */
+const CLAVE = "botlab_organizador_contenido_v1";
+
+function estadoInicial(){
+  const config = {};
+  FASES.forEach(f => config[f.id] = f.diaDefault);
+  return { config, semanas:{}, ideas:[] };
+}
+
+let estado = cargar();
+
+function cargar(){
+  try{
+    const raw = localStorage.getItem(CLAVE);
+    if(!raw) return estadoInicial();
+    const data = JSON.parse(raw);
+    const base = estadoInicial();
+    return {
+      config: Object.assign(base.config, data.config || {}),
+      semanas: data.semanas || {},
+      ideas: Array.isArray(data.ideas) ? data.ideas : [],
+    };
+  }catch(e){ return estadoInicial(); }
+}
+
+function guardar(){
+  localStorage.setItem(CLAVE, JSON.stringify(estado));
+}
+
+/* ================= Semanas (clave = lunes de la semana) ================= */
+let offsetSemana = 0; // 0 = semana actual
+
+function lunesDe(fecha){
+  const d = new Date(fecha.getFullYear(), fecha.getMonth(), fecha.getDate());
+  const dia = (d.getDay() + 6) % 7; // 0 = lunes
+  d.setDate(d.getDate() - dia);
+  return d;
+}
+
+function claveSemana(lunes){
+  const y = lunes.getFullYear();
+  const m = String(lunes.getMonth()+1).padStart(2,"0");
+  const dd = String(lunes.getDate()).padStart(2,"0");
+  return y + "-" + m + "-" + dd;
+}
+
+function lunesActual(){
+  const l = lunesDe(new Date());
+  l.setDate(l.getDate() + offsetSemana * 7);
+  return l;
+}
+
+function datosSemana(clave){
+  if(!estado.semanas[clave]) estado.semanas[clave] = { hechas:{}, extras:{}, notas:{} };
+  const s = estado.semanas[clave];
+  s.hechas = s.hechas || {};
+  s.extras = s.extras || {};
+  s.notas  = s.notas  || {};
+  return s;
+}
+
+function fmtFecha(d){
+  return d.getDate() + " " + ["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"][d.getMonth()];
+}
+
+/* ================= Render: configuración de fases ================= */
+function renderConfig(){
+  const cont = document.getElementById("fasesConfig");
+  cont.innerHTML = "";
+  FASES.forEach(f => {
+    const div = document.createElement("div");
+    div.className = "fase-cfg";
+    div.style.setProperty("--fase-color", f.color);
+    const opciones = DIAS_SEMANA.map((d,i) =>
+      `<option value="${i}" ${estado.config[f.id]===i?"selected":""}>${d.charAt(0).toUpperCase()+d.slice(1)}</option>`
+    ).join("");
+    div.innerHTML = `
+      <div class="nombre">${f.icono} ${f.nombre}</div>
+      <select data-fase="${f.id}">${opciones}</select>`;
+    div.querySelector("select").addEventListener("change", e => {
+      estado.config[f.id] = parseInt(e.target.value, 10);
+      guardar();
+      renderSemana();
+    });
+    cont.appendChild(div);
+  });
+}
+
+/* ================= Render: semana ================= */
+function renderSemana(){
+  const lunes = lunesActual();
+  const clave = claveSemana(lunes);
+  const sem = datosSemana(clave);
+  const domingo = new Date(lunes); domingo.setDate(domingo.getDate()+6);
+
+  const titulo = document.getElementById("tituloSemana");
+  const etiqueta = offsetSemana === 0 ? "Esta semana" :
+                   offsetSemana === -1 ? "Semana pasada" :
+                   offsetSemana === 1 ? "Próxima semana" : "Semana";
+  titulo.innerHTML = etiqueta + " <small>" + fmtFecha(lunes) + " – " + fmtFecha(domingo) + "</small>";
+
+  // fases por día
+  const fasesPorDia = {};
+  FASES.forEach(f => {
+    const d = estado.config[f.id];
+    (fasesPorDia[d] = fasesPorDia[d] || []).push(f);
+  });
+
+  const hoy = new Date();
+  const cont = document.getElementById("dias");
+  cont.innerHTML = "";
+
+  let totalTareas = 0, tareasHechas = 0;
+
+  DIAS_SEMANA.forEach((nombreDia, i) => {
+    const fases = fasesPorDia[i] || [];
+    if(fases.length === 0 && i >= 5) return; // oculta fin de semana si está libre
+
+    const fecha = new Date(lunes); fecha.setDate(fecha.getDate()+i);
+    const esHoy = fecha.toDateString() === hoy.toDateString();
+
+    const dia = document.createElement("div");
+    dia.className = "dia" + (esHoy ? " es-hoy" : "");
+
+    let html = `
+      <div class="dia-head">
+        <span class="nombre">${nombreDia}</span>
+        ${esHoy ? '<span class="tag-hoy">Hoy</span>' : ""}
+        <span class="fecha">${fmtFecha(fecha)}</span>
+      </div>`;
+    dia.innerHTML = html;
+
+    if(fases.length === 0){
+      const libre = document.createElement("div");
+      libre.className = "dia-libre";
+      libre.textContent = "Día libre 😌";
+      dia.appendChild(libre);
+    }
+
+    fases.forEach(f => {
+      const bloque = document.createElement("div");
+      bloque.className = "fase-bloque";
+      bloque.style.setProperty("--fase-color", f.color);
+      bloque.innerHTML = `<div class="fase-titulo">${f.icono} ${f.nombre}</div>`;
+
+      const extras = sem.extras[f.id] || [];
+      const listaTareas = f.tareas.map((t,idx) => ({ texto:t, key:f.id+":"+idx, extraIdx:null }))
+        .concat(extras.map((t,idx) => ({ texto:t, key:f.id+":x"+idx, extraIdx:idx })));
+
+      listaTareas.forEach(t => {
+        totalTareas++;
+        const hecha = !!sem.hechas[t.key];
+        if(hecha) tareasHechas++;
+        const label = document.createElement("label");
+        label.className = "tarea" + (hecha ? " hecha" : "");
+        label.innerHTML = `
+          <input type="checkbox" ${hecha?"checked":""} />
+          <span class="txt">${escapar(t.texto)}</span>
+          ${t.extraIdx !== null ? '<button class="del" title="Eliminar tarea">✕</button>' : ""}`;
+        label.querySelector("input").addEventListener("change", e => {
+          sem.hechas[t.key] = e.target.checked;
+          guardar();
+          renderSemana();
+        });
+        const del = label.querySelector(".del");
+        if(del) del.addEventListener("click", e => {
+          e.preventDefault();
+          extras.splice(t.extraIdx, 1);
+          delete sem.hechas[t.key];
+          sem.extras[f.id] = extras;
+          guardar();
+          renderSemana();
+        });
+        bloque.appendChild(label);
+      });
+
+      // agregar tarea propia
+      const addRow = document.createElement("div");
+      addRow.className = "add-tarea";
+      addRow.innerHTML = `<input type="text" placeholder="+ tarea propia" maxlength="100" /><button title="Agregar">+</button>`;
+      const inp = addRow.querySelector("input");
+      const agregar = () => {
+        const v = inp.value.trim();
+        if(!v) return;
+        (sem.extras[f.id] = sem.extras[f.id] || []).push(v);
+        guardar();
+        renderSemana();
+      };
+      addRow.querySelector("button").addEventListener("click", agregar);
+      inp.addEventListener("keydown", e => { if(e.key === "Enter") agregar(); });
+      bloque.appendChild(addRow);
+
+      dia.appendChild(bloque);
+    });
+
+    // notas del día
+    const notas = document.createElement("textarea");
+    notas.className = "notas";
+    notas.placeholder = "Notas del día (tema del video, links, pendientes...)";
+    notas.value = sem.notas[i] || "";
+    notas.addEventListener("input", () => {
+      sem.notas[i] = notas.value;
+      guardar();
+    });
+    dia.appendChild(notas);
+
+    cont.appendChild(dia);
+  });
+
+  const pct = totalTareas ? Math.round(tareasHechas / totalTareas * 100) : 0;
+  document.getElementById("barraProgreso").style.width = pct + "%";
+  document.getElementById("pctProgreso").textContent = pct + "%";
+}
+
+/* ================= Render: banco de ideas ================= */
+function renderIdeas(){
+  const cont = document.getElementById("listaIdeas");
+  cont.innerHTML = "";
+  if(estado.ideas.length === 0){
+    cont.innerHTML = '<div class="sin-ideas">Aún no hay ideas. ¡Agrega la primera! 💡</div>';
+    return;
+  }
+  estado.ideas.forEach((idea, i) => {
+    const est = ESTADOS_IDEA.find(e => e.id === idea.estado) || ESTADOS_IDEA[0];
+    const div = document.createElement("div");
+    div.className = "idea";
+    const opciones = ESTADOS_IDEA.map(e =>
+      `<option value="${e.id}" ${e.id===idea.estado?"selected":""}>${e.nombre}</option>`
+    ).join("");
+    div.innerHTML = `
+      <span class="estado-pill" style="background:${est.color}22;color:${est.color};border:1px solid ${est.color}55;">${est.nombre}</span>
+      <span class="titulo-idea">${escapar(idea.titulo)}</span>
+      <select>${opciones}</select>
+      <button class="borrar" title="Eliminar idea">🗑</button>`;
+    div.querySelector("select").addEventListener("change", e => {
+      idea.estado = e.target.value;
+      guardar();
+      renderIdeas();
+    });
+    div.querySelector(".borrar").addEventListener("click", () => {
+      if(confirm("¿Eliminar esta idea?")){
+        estado.ideas.splice(i,1);
+        guardar();
+        renderIdeas();
+      }
+    });
+    cont.appendChild(div);
+  });
+}
+
+function agregarIdea(){
+  const inp = document.getElementById("inputIdea");
+  const v = inp.value.trim();
+  if(!v) return;
+  estado.ideas.unshift({ titulo:v, estado:"idea" });
+  inp.value = "";
+  guardar();
+  renderIdeas();
+}
+
+/* ================= Utilidades ================= */
+function escapar(s){
+  return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+/* ================= Eventos globales ================= */
+document.getElementById("btnPrev").addEventListener("click", () => { offsetSemana--; renderSemana(); });
+document.getElementById("btnNext").addEventListener("click", () => { offsetSemana++; renderSemana(); });
+document.getElementById("btnHoy").addEventListener("click", () => { offsetSemana = 0; renderSemana(); });
+document.getElementById("btnAddIdea").addEventListener("click", agregarIdea);
+document.getElementById("inputIdea").addEventListener("keydown", e => { if(e.key === "Enter") agregarIdea(); });
+
+/* ================= Inicio ================= */
+renderConfig();
+renderSemana();
+renderIdeas();
+</script>
+</body>
+</html>
